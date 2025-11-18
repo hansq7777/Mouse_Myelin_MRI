@@ -1,0 +1,26 @@
+##TITLE=Parameter List, ParaVision 360 V3.6
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin GmbH & Co. KG
+##OWNER=nmrsu
+$$ Write Options: Symbolic Enums, RLE encoded arrays
+$$ 2025-11-10 10:53:04.987 -0600  nmrsu@bi-bic-bruk400
+$$ /opt/nmrdata/PV-360.3.6/data/nmrsu/20251110_104318_RyanDilger_RD25MYELOMAP_Test_livemouse3_1_5/3/AdjStatePerScan
+$$ process /opt/PV-360.3.6/prog/bin/parxserver
+##$AdjScanStateCompleted=No
+##$AdjScanStateAdjName=( 1, 128 )
+<RCVR_Standard>
+##$AdjScanStateTime=( 1 )
+<2025-11-10T10:53:02,643-0600>
+##$AdjScanStateExpno=( 1 )
+3
+##$AdjScanStateState=( 1 )
+adj_successful
+##$AdjScanStateResultId=( 1, 65 )
+<2.16.756.5.5.200.2927627995.4240.1762793580.351>
+##$AdjScanStateMethod=( 1, 128 )
+<Bruker:RAREvfl>
+##$AdjScanStateModality=( 1 )
+MR_Modality
+##END=
+$$ File finished by PARX at 2025-11-10 10:53:04.988 -0600

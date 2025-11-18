@@ -1,0 +1,199 @@
+;****************************************************************
+;
+; Copyright (c) 2017
+; Bruker BioSpin GmbH & Co. KG
+; D-76275 Ettlingen, Germany
+;
+; All Rights Reserved
+; 
+; MGE - a multi gradient echo imaging method
+;
+;****************************************************************
+;
+; d0 - TR padding
+; d1 - T1 padding
+; d2 - T2 padding
+; d3 = PVM_RiseTime
+; d4 = PVM_RampTime
+
+#include <MRI.include>
+#include <PrepModulesHead.mod> 
+
+define list<shape> stP = {$SteamPulseList}
+define list<shape> excP={$ExcPulseList}
+define loopcounter lds={$PVM_DummyScans}
+define list<phase> phaselist = {$RFPhaseList}
+
+define delay denab
+define delay d13mDE
+ 
+"denab =  d3 - de"
+"d13mDE=d13-de"
+"l5 = lds * l4"
+
+INIT_DEVICES
+
+#define r2d ACQ_spatial_phase_1
+#define r3d ACQ_spatial_phase_2
+
+grad_zero_for_gs <r2d, r3d>
+
+decr,   r2d.dec
+	lo to decr times l5                 ; steps per segment * DS
+
+
+             subr FlowSatInit()
+start,  0u        r2d.store
+acc,    0u
+             subr TriggerPhase()
+
+;-------------------- start of the main loop -----------------------
+slice,       UPDATE_DYN_PARS_30u
+       10u        fq8(receive):f1
+        0u        r2d.restore 
+
+;----------------------- preparation modules -----------------------
+             subr TriggerSlice()
+             subr FlowSat()
+             subr FovSat()
+             subr FatSup()
+
+;------------------------ steam preparation ------------------------
+        d3        grad_ramp{0,0,g12} fq2:f1 
+       (p1:stP    ph2):f1
+
+if (SteamAltSlice==Yes)
+{
+                      ; switch this only in case of for +- gradients
+       d15        grad_ramp{g11, 0, 0}  fq2:f1    
+                                       
+     ; +/- switching of g12 compensates for residual slice gradients
+  	d3        grad_ramp{0, 0, -g12}                  
+}
+else
+{
+        d3        grad_off
+       d15        grad_ramp{g11, 0, g13} 
+        d3        grad_off
+        d3        grad_ramp{0,0,g12}
+}
+
+       (p1:stP    ph2):f1
+        d6        grad_ramp{0, 0, g14}   fq1:f1
+        d3        grad_off
+       d19                                        ;grad settle delay
+
+;------------------------ slice selection --------------------------
+echo,   d3        grad_ramp{0, 0, g0}  fq8(receive):f1
+       (p0:excP   phaselist):f1
+        d4        grad_off
+   
+;----------- slice rephase, read dephase, phase encoding -----------
+       d10 	  grad_ramp{g2, r2d*g3, g1+r3d*g4}
+        d2        grad_off
+
+;----------------------- frequency encoding ------------------------
+     denab        grad_ramp{g5, 0, 0}
+
+                  ADC_INIT_(job0, ph1, phaselist)
+  AQ_(job0)       ADC_START_(job0)
+             
+
+if (DiffRed==Yes)
+{
+       d17
+        d3        grad_off
+       d13        ADC_END_(job0)
+        d3        grad_ramp{-g5, 0, 0}     
+       d17
+       d17
+        d3        grad_off
+       d13
+     denab        grad_ramp{g5, 0, 0}
+       d17
+}
+else
+{
+       d13
+    d13mDE        ADC_END_(job0)
+}
+
+                  ADC_INIT_(job0, ph1, phaselist)
+  AQ_(job0)       ADC_START_(job0)
+
+        d3        grad_off
+       10u        ADC_END_(job0)
+     
+;------------------ read spoiler + phase encoding ------------------
+       d11        grad_ramp{g6, r2d*g7, r3d*g8}   ; 2nd and 3rd dims
+       d12        grad_ramp{g6, 0, g9}
+        d3        grad_off
+
+        0u        r2d.inc
+
+   if (VariableFA==Yes)
+   {
+        0u        excP.inc
+   }
+   else
+   {
+        0u
+   }
+
+       d19                        ; grad stab delay
+      100u                        ; delay between echoes to ensure data
+                                  ; transfer in fast multislice experiments
+        d0
+        0u        phaselist.inc   ;phase list for RF spoiling
+
+     lo to echo times l4
+
+        2m                        ; delay between segments to ensure data
+                                  ; transfer in fast multislice experiments	
+       d16
+        
+;---------------------- slice and movie loop -----------------------
+             subr FlowSatInc()
+        0u        grad_matrix.inc
+
+     lo to slice times NSLICES
+
+;--------------------------- dummy loop ----------------------------
+     "lds=lds-1"
+     if "lds>=0" goto start
+
+;------------------------- averaging loop --------------------------
+     lo to acc times NA
+
+;-------------------------- segment loop ---------------------------
+     lo to start times l1
+
+;----------------------------- 3d-loop -----------------------------
+                  r3d.inc
+     lo to start times l2
+
+;---------------------- motion averaging loop ----------------------
+     lo to start times NAE
+
+;------------------------- repetition loop -------------------------
+        0u        excP.inc
+        0u        stP.inc
+
+     lo to start times NR
+
+SETUP_GOTO(start)
+
+exit
+
+ph0 = 0
+ph1 = 0
+ph2 = 0
+
+
+
+	
+
+
+
+
+

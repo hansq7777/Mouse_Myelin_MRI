@@ -1,0 +1,15 @@
+##TITLE=Parameter List, ParaVision 360 V3.6
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin GmbH & Co. KG
+##OWNER=nmrsu
+$$ Write Options: Symbolic Enums
+$$ 2025-11-10 11:52:40.922 -0600  nmrsu@bi-bic-bruk400
+$$ /opt/nmrdata/PV-360.3.6/data/nmrsu/20251110_104318_RyanDilger_RD25MYELOMAP_Test_livemouse3_1_5/15/pdata/1/id
+$$ process /opt/PV-360.3.6/prog/bin/parxserver
+##$DATASET_KEY=( 65 )
+<2.16.756.5.5.200.2927627995.4240.1762797160.1080>
+##$DATASET_Modality=MR_Modality
+##$DATASET_ExperimentValid=Yes
+##END=
+$$ File finished by PARX at 2025-11-10 11:52:40.922 -0600

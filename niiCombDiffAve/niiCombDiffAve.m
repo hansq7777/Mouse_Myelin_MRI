@@ -1,0 +1,355 @@
+function [imout, imin, mask, im_info] = niiCombDiffAve(fname,opt,swapAveLoopOrder)
+%
+% Performs the following:
+% - refines Nyquist ghost correction (optional; off by default; only for complex data input)
+% - partial Fourier reconstruction (only for complex data input)
+% - correct freq drift
+% - characterizes signal drift
+% - removes averages that are outliers
+% - combines averages. For complex data, low freq phase is removed first.
+% - gibbs ringing filtering with Kaiser-Bessel filter (default is very slight)
+% - PCA denoising (optional; off by default)
+% - saves nifti
+%
+% Inputs    
+%   fname:      NIFTI file name. Exclude extension, and _real/_imaginary for complex data. 
+%                   Currently only supports Bruker scans
+%                   NIFTI('s) should have been generated using enhDic2Nii.sh
+%   opt:        struct containing options
+%   swapOrder:  (default=0) swaps dimensions of averages and b-values.
+%                   We have found that complex data on paravision will sometimes have the averages 
+%                   back-to-back (depending on the rf coil), even when they were not acquired that way.
+%
+%
+% (c) Corey Baron, 2018-22
+%
+
+% Set options
+if nargin<2 || isempty(opt) || ~isfield(opt,'bthresh')
+    % Below this b-value threshold, the acquisition is considered to have b~0
+    % When left empty, will be automatically determined (seems to work pretty well)
+    opt.bthresh = [];
+end
+if ~isfield(opt,'outThresh') || isempty(opt.outThresh)
+    % Number of standard deviations for removal of outlier averages
+    opt.outThresh = 2.5; 
+end
+if ~isfield(opt,'nyqCor') || isempty(opt.nyqCor)
+    % Try to improve nyquist ghost correction (sometimes automatic correction fails for Paravision 6 or 7)
+    opt.nyqCor = 0; 
+end
+if ~isfield(opt,'ppfCor') || isempty(opt.ppfCor)
+    % Perform partial fourier recon (Paravision 6 and 7 only zero-fill)
+    opt.ppfCor = 1; 
+end
+if ~isfield(opt,'nshot_in')
+    % For multi-shot EPI
+    opt.nshot_in = [];
+end
+if ~isfield(opt,'use3D') || isempty(opt.use3D)
+    % When opt.nyqCor == 1, this causes the full stack of slices to be considered together.
+    % Otherwise, each slice is considered separately, which should be more accurate.
+    opt.use3D = 0;
+end
+if ~isfield(opt,'useGPU') || isempty(opt.useGPU)
+    opt.useGPU = 1;
+end
+if ~isfield(opt,'gibbsAlpha') || isempty(opt.gibbsAlpha)
+    % Gibbs ringing filtering
+    % a value of 1 to 2 is reasonable
+    opt.gibbsAlpha = 1;
+end
+if ~isfield(opt,'dodenoise') || isempty(opt.dodenoise)
+    % Denoising
+    opt.dodenoise = 0;
+end
+
+% Check for dependencies
+if ~exist('rigidbody3d.m','file')
+    error('This function requires baronRecon repository to be on path')
+end
+
+% Extract parameters from json
+fname = char(fname);
+if exist([fname,'_method.json'], 'file')
+    jsontxt = fileread([fname,'_method.json']);
+    jsonStruct = jsondecode(jsontxt);
+    Nrep = jsonStruct.x_PVM_NRepetitions;
+else
+    warning('no _method.json file found. Assuming 1 repetition')
+    Nrep = 1;
+end
+    
+
+% Read in nifti's
+imout = [];
+isComplex = 0;
+if exist([fname, '_imaginary.nii'],'file') || exist([fname, '_imaginary.nii.gz'],'file') 
+    if exist([fname, '_imaginary.nii.gz'],'file')
+        ext = '.nii.gz';
+    else
+        ext = '.nii';
+    end
+    imin = single(niftiread(sprintf('%s%s', [fname, '_real'],ext)))+...
+        1i*single(niftiread(sprintf('%s%s', [fname, '_imaginary'],ext)));
+    im_info = niftiinfo(sprintf('%s%s', [fname, '_real'],ext));
+    isComplex = 1;
+    if exist('jsonStruct', 'var') && jsonStruct.x_PVM_EncNReceivers > 1
+        error('TODO: test this with multiple receivers. Does the complex data contain all the receivers?')
+    end
+elseif exist([fname, '.nii'],'file') || exist([fname, '.nii.gz'],'file') 
+    warning('Only magnitude data found. Averaging is more robust with complex data.')
+    if exist([fname, '.nii.gz'],'file')
+        ext = '.nii.gz';
+    else
+        ext = '.nii';
+    end
+    imin = single(niftiread(sprintf('%s%s', fname, ext)));
+    im_info = niftiinfo(sprintf('%s%s', fname, ext));
+else
+    error('File not found.\n %s', fname)
+end
+if isComplex 
+    if (nargin<3) || isempty(swapAveLoopOrder)
+        error('swapAveLoopOrder must be set. Complex data on paravision will sometimes have the averages back-to-back')
+    end
+else
+    swapAveLoopOrder = 0;
+end
+
+% Read in b-values
+if exist(sprintf('%s.bval', fname), 'file') 
+    bval = dlmread(sprintf('%s.bval', fname));
+    % Find b=0 images
+    bval = repmat(bval(:), [Nrep 1]);
+    if isempty(opt.bthresh)
+        opt.bthresh = 2*min(bval);
+    end
+    b0inds = find(bval < opt.bthresh);
+    allInds = 1:length(bval);
+else
+    warning('No bval file found. Drift correction no possible.')
+    bval = [];
+    b0inds = 1;
+end
+
+% Reorder repetitions
+sz_in = size(imin);
+if swapAveLoopOrder
+    % For real/imag data, the repetitions are sometimes rearranged to be back-to-back, even though they were carried out on the outer loop.
+    imout = reshape(imin, [sz_in(1:3) Nrep sz_in(4)/Nrep]);
+    imout = permute(imout, [1 2 3 5 4]);
+else
+    imout = reshape(imin, [sz_in(1:3) sz_in(4)/Nrep Nrep]);
+end
+
+
+if isComplex 
+    % Go to hybrid k-space
+    imout = permute(imout,[2 1 3:5]);
+    imout = ifftnc(imout,1);
+    % Find first line (partial fourier)
+    tmp = sum(abs(imout(:,:)),2);
+    tmp = tmp/median(tmp);
+    in1 = find(tmp>1e-2);
+    in2 = in1(end);
+    in1 = in1(1);
+    % Force unacquired parts to 0, which is required for partial fourier.
+    % Also move all unacquired lines to one size of k-space
+    if (opt.ppfCor || opt.nyqCor) && (in2<size(imout,1))
+        imout_a = zeros(size(imout),'like',imout);
+        imout_a(1:in2-in1+1,:) = imout(in1:in2,:);
+        imout = imout_a;
+        in2 = in2-in1+1;
+        in1 = 1;
+        clear imout_a
+    end
+    % Refine Nyquist ghost correction
+    if opt.nyqCor
+        fprintf('Refining Nyquist ghost correction...')
+        tic1 = tic;
+        if exist('jsonStruct', 'var') && jsonStruct.x_PVM_EncTotalAccel >= 2
+            error('TODO: account for accelerated data')
+        end
+        if ~isempty(opt.nshot_in)
+            nShot = opt.nshot_in;
+        else
+            nShot = jsonStruct.x_PVM_EpiNShots;
+        end
+        % Split into odd/even lines
+        im_h_odd = zeros(size(imout),'like',imout);
+        im_h_eve = zeros(size(imout),'like',imout);
+        for nS = 0:nShot-1
+            im_h_odd(in1+nS:2*nShot:end,:) = imout(in1+nS:2*nShot:end,:);
+            im_h_eve(in1+nShot+nS:2*nShot:end,:) = imout(in1+nShot+nS:2*nShot:end,:);
+        end
+        
+        if opt.use3D
+            [k_h_1,phsOut_1,im_h_1] = nyquistAuto(sum(im_h_odd(:,:,:,b0inds),4),2,sum(im_h_eve(:,:,:,b0inds),4),1);
+            imout = im_h_odd + phsOut_1{1}.*im_h_eve;
+        else
+            % Find optimal phase correction for each slice. Use average over all b0
+            % images to improve snr
+            for nsl = 1:size(imout,3)
+                original_imout_nsl = imout(:,:,nsl,:,:);
+                try
+                    [k_h_1,phsOut_1,im_h_1] = nyquistAuto(sum(im_h_odd(:,:,nsl,b0inds),4),2,sum(im_h_eve(:,:,nsl,b0inds),4));
+                    imout(:,:,nsl,:,:) = im_h_odd(:,:,nsl,:,:) + phsOut_1{1}.*im_h_eve(:,:,nsl,:,:);
+                catch ME
+                    % Occasionally a slice is acquired with no signal, which can cause errors in the algorithm
+                    imout(:,:,nsl,:,:) = original_imout_nsl;
+                    fprintf('\nslice %d out of %d failed, it is ok if outside the brain\n', nsl, size(imout,3));
+                    disp(ME)
+                end
+            end
+            clear im_h*
+        end
+        fprintf('took %d sec\n', round(toc(tic1)))
+    end
+    
+    % Partial Fourier
+    if opt.ppfCor
+        fprintf('Partial Fourier recon...')
+        tic1 = tic;
+        imout = ppfpocs(imout, 1, 1);
+        imout = permute(imout, [2 1 3:5]);
+        fprintf('took %d sec\n', round(toc(tic1)))
+    else
+        imout = fftnc(imout,1);
+        imout = permute(imout, [2 1 3:5]);
+    end
+    
+    % Gibbs filtering
+    if opt.gibbsAlpha >0
+        fprintf('Gibs filtering, alpha = %d ...\n', opt.gibbsAlpha)
+        szg = size(imout);
+        win = kbfiltNd(szg(1:2),opt.gibbsAlpha,2);
+        imout = ifftnc(imout,2);
+        imout = imout.*win;
+        imout = fftnc(imout,2);
+    end
+end
+
+
+% Correct freq drift (resulting in image shifting)
+% Find shifts
+im_t = permute(imout(:,:,:,b0inds), [2 1 3:4]);
+moOpt.mocodims = '1D'; 
+voxShifts = zeros(size(im_t,4),1);
+pads = [0 0 0];
+for dim=1:3
+    % The motion correction code expects even numbers of voxels per dimension,
+    % so we pad with zeros when necessary
+    if mod(size(im_t,dim),2)
+        sz_t2 = size(im_t);
+        sz_t2(dim) = 1;
+        im_t = cat(dim,im_t,zeros(sz_t2,'like',im_t));
+        pads(dim) = 1;
+    end
+end
+for nV = 1:size(im_t,4)-1
+  p_f = rigidbody3d(im_t(:,:,:,1),im_t(:,:,:,nV+1),moOpt,opt.useGPU);
+  voxShifts(nV+1) = p_f(1);
+end
+for dim=1:3
+    % Remove padding from above
+    if pads(dim)
+        if dim==1
+            im_t = im_t(1:end-1,:,:,:);
+        elseif dim==2
+            im_t = im_t(:,1:end-1,:,:);
+        elseif dim==3
+            im_t = im_t(:,:,1:end-1,:);
+        end
+    end
+end
+% Fit a line to the shifts over the duration of the scan
+X = [ones(length(b0inds),1) b0inds(:)];
+b = X\voxShifts(:);
+figure; 
+subplot(2,2,1);
+plot(b0inds,voxShifts(:),'o'); hold('all'); plot([0, b0inds(end)], b(1) + b(2)*[0, b0inds(end)])
+xlabel('Acquisition #')
+ylabel('Freq shift [vox]')
+% Apply shift correction
+phs0 = (-sz_in(2)/2:sz_in(2)/2-1)/sz_in(2)*2*pi;
+for nV = 1:sz_in(4)
+    im_t = ifftshift(ifft(ifftshift(imout(:,:,:,nV),2),[],2),2).*exp(-1i*phs0*(b(1)+b(2)*nV));
+    imout(:,:,:,nV) = fftshift(fft(fftshift(im_t,2),[],2),2);
+end
+
+% Assess signal drift 
+%    typically very small, but we assess for QA purposes
+im_t = imout(:,:,:,b0inds);
+im_tt = mean(abs(im_t),4);
+mask = (im_tt > prctile(im_tt(:),80)) .* (im_tt < prctile(im_tt(:),99.9));
+aveSig = sum(sum(sum(abs(im_t.*mask),1),2),3);
+b_sig = X\aveSig(:);
+subplot(2,2,2); plot(b0inds,aveSig(:),'o'); hold('all'); plot([0, b0inds(end)], b_sig(1) + b_sig(2)*[0, b0inds(end)])
+title('Info only (not corrected).')
+xlabel('Acquisition #')
+ylabel('Signal drift [a.u.].')
+
+
+if Nrep > 1
+    % Find and remove outliers for each direction. 
+    im_t = abs(imout);
+    im_t_m = median(im_t,5);
+    im_t = squeeze(sum(sum(sum(abs(im_t-im_t_m),1),2),3));
+    im_t = abs(im_t - median(im_t')')./std(im_t,[],2);
+    subplot(2,2,3); imagesc(im_t); title(sprintf('Outlier cost fcn (thresh = %d)',opt.outThresh)); colorbar
+    xlabel('NRep'); ylabel('N diff')
+    outliers = im_t > opt.outThresh;
+    subplot(2,2,4); imagesc(outliers); title(sprintf('Outliers thresholded'));
+    imout(:,:,:,outliers) = 0;
+    if any(im_t(:) > opt.outThresh)
+        warning('Outliers detected with std threshold = %d', opt.outThresh)
+    end
+
+    % Align the low frequency phase. Has no impact on abs(image) before averaging
+    % Essential for complex averaging and denoising
+    if isComplex
+        kbAlph = 6;
+        win = kaiser(size(imout,1),kbAlph) .* kaiser(size(imout,2),kbAlph)';
+        phs = ifftnc(imout,2);
+        phs = fftnc(phs.*win,2);
+        phs = phs./abs(phs);
+        imout = imout.*conj(phs);
+    end
+
+    % Combine averages
+    Nout = sum(outliers,2);
+    imout = sum(imout,5);
+    for nV=1:size(imout,4)
+        imout(:,:,:,nV) = imout(:,:,:,nV)/(Nrep - Nout(nV));
+    end
+end
+
+% Denoise (works well when data is complex)
+%remove NaN or Inf from imout
+imout(isnan(imout)) = 0;
+imout(isinf(0)) = 0;
+if opt.dodenoise
+    fprintf('Denoising...\n')
+    imout(:,:,:,:) = MPdenoising(imout(:,:,:,:),[],[5 5 5],'fast');
+end
+
+% Take abs and save nifti
+imsave = abs(imout);
+%
+im_info.Datatype = 'single';
+im_info.BitsPerPixel = 32;
+im_info.raw.datatype = 16;
+im_info.raw.bitpix = 32;
+%
+im_info.ImageSize(4) = size(imsave,4);
+im_info.raw.dim(5) = size(imsave,4);
+%
+niftiwrite(single(imsave), sprintf('%s_aveComb.nii', fname), im_info, 'Compressed', true);
+system(sprintf('cp %s.bval %s_aveComb.bval', fname, fname));
+system(sprintf('cp %s.bvec %s_aveComb.bvec', fname, fname));
+if exist(sprintf('%s.bmat', fname), 'file')
+    system(sprintf('cp %s.bmat %s_aveComb.bmat', fname, fname));
+end
+
+end

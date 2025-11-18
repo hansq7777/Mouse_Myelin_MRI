@@ -1,0 +1,151 @@
+function [mtr, mtsat] = nii2mtsat(name_MTon, name_MToff, name_T1w, maskName, gaussianFilter, name_B1)
+%Function to convert NIFTIs to MTR and MTsat maps (input filenames must not
+%include extensions such as .nii.gz,etc.)
+%name_MToff: reference PDw scan with MT pulse off
+%gaussianFilter = 0 or 1
+
+if nargin < 6
+    name_B1 = [];
+end
+if nargin < 5
+    gaussianFilter = 0;
+end
+if nargin < 4
+    maskName = [];
+end
+if nargin < 3
+    name_T1w = [];
+end
+
+name_MTon = char(name_MTon);
+name_MToff = char(name_MToff);
+name_T1w = char(name_T1w);
+name_B1 = char(name_B1);
+maskName = char(maskName);
+
+% Load data
+if exist(sprintf('%s.nii.gz', name_MTon))
+    ext = '.nii.gz';
+elseif exist(sprintf('%s.nii', name_MTon))
+    ext = '.nii';
+else
+    error('File extension error')
+end
+
+
+MTon_info = niftiinfo(sprintf('%s%s', name_MTon,ext));
+MTon = single(niftiread(sprintf('%s%s', name_MTon,ext))).*MTon_info.MultiplicativeScaling;
+refPD_info = niftiinfo(sprintf('%s%s', name_MToff,ext));
+refPD = single(niftiread(sprintf('%s%s', name_MToff,ext))).*refPD_info.MultiplicativeScaling;
+
+if ~isempty(name_T1w)
+    refT1_info = niftiinfo(sprintf('%s%s', name_T1w,ext));
+    refT1 = single(niftiread(sprintf('%s%s', name_T1w,ext))).*refT1_info.MultiplicativeScaling;
+
+end
+if ~isempty(name_B1)
+    %extract volume 2 from B1
+    [st, sysOut] = system(sprintf('fslroi %s.nii.gz %s_vol2.nii.gz 1 1',name_B1,name_B1)); if st; error(sysOut); end
+    %resample B1 map - to match res of MT scan
+    [st, sysOut] = system(sprintf('flirt -in %s_vol2.nii.gz -ref %s.nii.gz -out %s_vol2_RS.nii.gz -applyxfm',name_B1,name_MTon,name_B1)); if st; error(sysOut); end
+    B1_info = niftiinfo(sprintf('%s_vol2_RS.nii.gz', name_B1));
+    B1 = single(niftiread(sprintf('%s_vol2_RS.nii.gz', name_B1))).*B1_info.MultiplicativeScaling;
+end
+
+%apply Gaussian filter
+if gaussianFilter
+    for i = 1:size(MTon, 3)
+        MTon(:,:,i) = imgaussfilt(MTon(:,:,i), 0.5, 'FilterSize', 3);
+        refPD(:,:,i) = imgaussfilt(refPD(:,:,i), 0.5, 'FilterSize', 3);
+	if ~isempty(name_T1w)
+	    refT1(:,:,i) = imgaussfilt(refT1(:,:,i), 0.5, 'FilterSize', 3);
+	end
+	if ~isempty(name_B1)
+	    B1(:,:,i) = imgaussfilt(B1(:,:,i), 0.5, 'FilterSize', 3);
+	end
+    end
+end
+
+% Calculate magnetization transfer ratio
+mtr = (refPD-MTon)./refPD;
+
+%mtc - may be used in registration
+mtc = refPD - MTon;
+
+% Calculate magnetization transfer saturation - call calcMTsat.m
+dofilt = 0;
+if ~isempty(name_T1w) 
+    % Get flip angles and TR from json files
+    MTon_json = fileread([name_MTon, '.json']);
+    MTon_json = jsondecode(MTon_json);
+    T1_json = fileread([name_T1w, '.json']);
+    T1_json = jsondecode(T1_json);
+
+    RFlocal = [];                      %RFlocal - relative local flip angle compared to nominal flip angle
+
+    if ~isempty(name_B1)    
+        B1_json = fileread([name_B1, '.json']);
+        B1_json = jsondecode(B1_json);
+        RFlocal = B1/B1_json.FlipAngle;
+        
+        %check which slices B1 correction can be applied to based on
+        %presence of banding artifact
+        %If B1 correction CANNOT be applied, set RFlocal = 1
+        B1corr_slices = readmatrix(sprintf('%s.csv',name_B1));
+        
+        %go through each slice
+        for z = 1:size(RFlocal, 3)
+            if B1corr_slices(z) == 0  %don't apply B1 correction
+                RFlocal(:,:,z) = 1;
+            end
+        end
+
+        % Do the calculation with RFlocal
+        mtsat = calcMTsat(refPD,refT1,MTon,pi/180*MTon_json.FlipAngle,pi/180*T1_json.FlipAngle,MTon_json.RepetitionTime,T1_json.RepetitionTime,RFlocal,dofilt);
+    else
+        % Do the calculation without RFlocal
+        mtsat = calcMTsat(refPD,refT1,MTon,pi/180*MTon_json.FlipAngle,pi/180*T1_json.FlipAngle,MTon_json.RepetitionTime,T1_json.RepetitionTime,[],dofilt);
+    end
+end
+
+% Make reasonable image bounds
+mtr(mtr<0) = 0;
+mtr(mtr>1) = 1;
+if ~isempty(name_T1w) 
+    mtsat(mtsat<0) = 0;
+    mtsat(mtsat>0.1) = 0.1;
+end
+
+% Apply Mask 
+if ~isempty(maskName)
+    imMask = niftiread(sprintf('%s%s', maskName,ext));
+    imMask = single(imMask);
+    imMask(imMask > 0) = 1;
+    mtr = mtr.*imMask;
+    mtc = mtc.*imMask;
+    if ~isempty(name_T1w)
+        mtsat = mtsat.*imMask;
+    end
+end
+
+% Save niftis
+im_info = niftiinfo(sprintf('%s%s', name_MTon,ext));
+im_info.MultiplicativeScaling = 1;
+im_info.Datatype = 'single';
+im_info.BitsPerPixel = 32;
+im_info.raw.datatype = 16;
+im_info.raw.bitpix = 32;
+%
+name_mtr = sprintf('%s_mtr',name_MTon);
+name_mtc = sprintf('%s_mtc',name_MTon);
+niftiwrite(single(mtr), name_mtr, im_info);
+cmd = sprintf('gzip -f %s.nii', name_mtr); [st, sysOut] = system(cmd); if st; error(sysOut); end
+niftiwrite(single(mtc), name_mtc, im_info);
+cmd = sprintf('gzip -f %s.nii', name_mtc); [st, sysOut] = system(cmd); if st; error(sysOut); end
+if ~isempty(name_T1w) 
+    name_mtsat = sprintf('%s_mtsat',name_MTon);
+    niftiwrite(single(mtsat), name_mtsat, im_info);
+    cmd = sprintf('gzip -f %s.nii', name_mtsat); [st, sysOut] = system(cmd); if st; error(sysOut); end
+end
+
+end

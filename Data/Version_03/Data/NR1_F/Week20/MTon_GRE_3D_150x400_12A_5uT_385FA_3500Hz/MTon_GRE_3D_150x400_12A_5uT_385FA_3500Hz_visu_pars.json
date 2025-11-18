@@ -1,0 +1,364 @@
+{
+    "TITLE": "Parameter List, ParaVision 6.0.1",
+    "JCAMPDX": 4.24,
+    "DATATYPE": "Parameter Values",
+    "ORIGIN": "Bruker BioSpin MRI GmbH",
+    "OWNER": "nmr",
+    "$VisuVersion": 3,
+    "$VisuUid": {
+        "maximum_length": 65,
+        "value": "<2.16.756.5.5.100.8323328.21846.1619704737.1>"
+    },
+    "$VisuCreator": {
+        "maximum_length": 65,
+        "value": "<ParaVision>"
+    },
+    "$VisuCreatorVersion": {
+        "maximum_length": 65,
+        "value": "<6.0.1>"
+    },
+    "$VisuCreationDate": "<2021-04-29T09:58:57,719-0400>",
+    "$VisuInstanceModality": {
+        "maximum_length": 65,
+        "value": "<MR>"
+    },
+    "$VisuCoreFrameCount": 1,
+    "$VisuCoreDim": 3,
+    "$VisuCoreSize": {
+        "dim": [
+            3
+        ],
+        "value": [
+            128,
+            96,
+            30
+        ]
+    },
+    "$VisuCoreDimDesc": {
+        "dim": [
+            3
+        ],
+        "value": [
+            "spatial",
+            "spatial",
+            "spatial"
+        ]
+    },
+    "$VisuCoreExtent": {
+        "dim": [
+            3
+        ],
+        "value": [
+            19.2,
+            14.4,
+            12
+        ]
+    },
+    "$VisuCoreFrameThickness": {
+        "dim": [
+            1
+        ],
+        "value": [
+            12
+        ]
+    },
+    "$VisuCoreUnits": {
+        "dim": [
+            3,
+            65
+        ],
+        "value": [
+            "<mm>",
+            "<mm>",
+            "<mm>"
+        ]
+    },
+    "$VisuCoreOrientation": {
+        "dim": [
+            1,
+            9
+        ],
+        "value": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+        ]
+    },
+    "$VisuCorePosition": {
+        "dim": [
+            1,
+            3
+        ],
+        "value": [
+            -9.6,
+            -4.2,
+            -6.3
+        ]
+    },
+    "$VisuCoreDataMin": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0.22520029866174
+        ]
+    },
+    "$VisuCoreDataMax": {
+        "dim": [
+            1
+        ],
+        "value": [
+            32766.5
+        ]
+    },
+    "$VisuCoreDataOffs": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$VisuCoreDataSlope": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0.00304644017325276
+        ]
+    },
+    "$VisuCoreFrameType": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "MAGNITUDE_IMAGE"
+        ]
+    },
+    "$VisuCoreSlicePacksDef": [
+        -1.0,
+        1
+    ],
+    "$VisuCoreSlicePacksSlices": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                0,
+                1
+            ]
+        ]
+    },
+    "$VisuCoreSlicePacksSliceDist": {
+        "dim": [
+            1
+        ],
+        "value": [
+            12
+        ]
+    },
+    "$VisuCoreWordType": "_16BIT_SGN_INT",
+    "$VisuCoreByteOrder": "littleEndian",
+    "$VisuCoreDiskSliceOrder": "disk_normal_slice_order",
+    "$VisuSubjectName": {
+        "maximum_length": 65,
+        "value": "<NR1>"
+    },
+    "$VisuSubjectId": {
+        "maximum_length": 65,
+        "value": "<Baron^uStructConcussion_NR1>"
+    },
+    "$VisuSubjectUid": {
+        "maximum_length": 65,
+        "value": "<2.16.756.5.5.100.8323328.23400.1616516234.577>"
+    },
+    "$VisuSubjectInstanceCreationDate": [
+        1616516234,
+        570,
+        -240.0
+    ],
+    "$VisuSubjectBirthDate": {
+        "maximum_length": 9,
+        "value": "<20191203>"
+    },
+    "$VisuSubjectSex": "UNKNOWN",
+    "$VisuSubjectType": "Quadruped",
+    "$VisuStudyUid": {
+        "maximum_length": 65,
+        "value": "<2.16.756.5.5.100.8323328.6479.1619701001.3>"
+    },
+    "$VisuStudyDate": "<2021-04-29T08:56:41,439-0400>",
+    "$VisuStudyId": {
+        "maximum_length": 65,
+        "value": "<20210429_01>"
+    },
+    "$VisuStudyNumber": 1,
+    "$VisuSubjectWeight": 0.001,
+    "$VisuStudyReferringPhysician": {
+        "maximum_length": 65,
+        "value": "<nmr>"
+    },
+    "$VisuStudyDescription": {
+        "maximum_length": 2048,
+        "value": "<\\DTI>"
+    },
+    "$VisuExperimentNumber": 3,
+    "$VisuProcessingNumber": 1,
+    "$VisuSeriesDate": "<2021-04-29T09:58:57,719-0400>",
+    "$VisuSubjectPosition": "Head_Prone",
+    "$VisuSeriesTypeId": {
+        "maximum_length": 65,
+        "value": "<ACQ_BRUKER_PVM>"
+    },
+    "$VisuSeriesComment": {
+        "maximum_length": 65,
+        "value": "<MTON_GRE_3D_150x400_12A_5uT_385FA_3500Hz>"
+    },
+    "$VisuManufacturer": {
+        "maximum_length": 65,
+        "value": "<Bruker BioSpin MRI GmbH>"
+    },
+    "$VisuAcqSoftwareVersion": {
+        "maximum_length": 65,
+        "value": "<6.0.1>"
+    },
+    "$VisuInstitution": {
+        "maximum_length": 65,
+        "value": "<Western CFMM>"
+    },
+    "$VisuStation": {
+        "maximum_length": 65,
+        "value": "<BioSpec 94/30>"
+    },
+    "$VisuSystemOrderNumber": {
+        "maximum_length": 65,
+        "value": "<10264699>"
+    },
+    "$VisuAcqDate": "<2021-04-29T09:40:08,650-0400>",
+    "$VisuAcqEchoTrainLength": 1,
+    "$VisuAcqSequenceName": {
+        "maximum_length": 40,
+        "value": "<Bruker:FLASH>"
+    },
+    "$VisuAcqNumberOfAverages": 12,
+    "$VisuAcqImagingFrequency": 400.172226389272,
+    "$VisuAcqImagedNucleus": {
+        "maximum_length": 8,
+        "value": "<1H>"
+    },
+    "$VisuAcqRepetitionTime": {
+        "dim": [
+            1
+        ],
+        "value": [
+            25
+        ]
+    },
+    "$VisuAcqPhaseEncSteps": 96,
+    "$VisuAcqPixelBandwidth": 976.5625,
+    "$VisuAcqFlipAngle": 9,
+    "$VisuAcqSize": {
+        "dim": [
+            3
+        ],
+        "value": [
+            128,
+            96,
+            39
+        ]
+    },
+    "$VisuAcqImageSizeAccellerated": false,
+    "$VisuAcqGradEncoding": {
+        "dim": [
+            3
+        ],
+        "value": [
+            "read_enc",
+            "phase_enc",
+            "slice_enc"
+        ]
+    },
+    "$VisuAcqEchoTime": {
+        "dim": [
+            1
+        ],
+        "value": [
+            2.75
+        ]
+    },
+    "$VisuAcquisitionProtocol": {
+        "maximum_length": 65,
+        "value": "<MT_GRE_3D_ISO150>"
+    },
+    "$VisuAcqScanTime": 1123200,
+    "$VisuAcqAntiAlias": {
+        "dim": [
+            3
+        ],
+        "value": [
+            1,
+            1,
+            1.3
+        ]
+    },
+    "$VisuAcqEchoSequenceType": "GradientEcho",
+    "$VisuAcqSpinsVelocityEncoded": false,
+    "$VisuAcqHasTimeOfFlightContrast": false,
+    "$VisuAcqIsEpiSequence": false,
+    "$VisuAcqSpectralSuppression": "NoSuppression",
+    "$VisuAcqKSpaceTraversal": "RectilinearTraversal",
+    "$VisuAcqEncodingOrder": {
+        "dim": [
+            3
+        ],
+        "value": [
+            "LinearEncoding",
+            "LinearEncoding",
+            "LinearEncoding"
+        ]
+    },
+    "$VisuAcqKSpaceTrajectoryCnt": 1,
+    "$VisuAcqKSpaceFiltering": {
+        "dim": [
+            3
+        ],
+        "value": [
+            "NO_WDW",
+            "NO_WDW",
+            "NO_WDW"
+        ]
+    },
+    "$VisuAcqFlowCompensation": "FlowNone",
+    "$VisuAcqSpoiling": "GradientSpoiled",
+    "$VisuAcqPartialFourier": {
+        "dim": [
+            3
+        ],
+        "value": [
+            1,
+            1,
+            1
+        ]
+    },
+    "$VisuAcqParallelReductionFactor": {
+        "dim": [
+            3
+        ],
+        "value": [
+            1,
+            1,
+            1
+        ]
+    },
+    "$VisuAcqMagnetizationTransfer": true,
+    "$VisuAcqBloodSignalNulling": false,
+    "$VisuCardiacSynchUsed": false,
+    "$VisuRespSynchUsed": false
+}

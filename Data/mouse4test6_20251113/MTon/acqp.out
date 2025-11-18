@@ -1,0 +1,15 @@
+##TITLE=Parameter List, ParaVision 360 V3.6
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin GmbH & Co. KG
+##OWNER=nmrsu
+$$ Write Options: Symbolic Enums, RLE encoded arrays, symbol visibility
+$$ 2025-11-13 15:39:36.244 -0600  nmrsu@bi-bic-bruk400
+$$ /opt/nmrdata/PV-360.3.6/data/nmrsu/20251113_133139_RyanDilger_RD25MYELOMAP_Test_livemouse4_1_6/19/acqp.out
+$$ process /opt/PV-360.3.6/prog/bin/parxserver
+##$ACQ_sw_version=( 65 )
+<PV-360.3.6>
+##$ACQ_abs_time=(1763069306, 260, -360)
+$$ @vis= ACQP_OUT ACQ_sw_version ACQ_abs_time
+##END=
+$$ File finished by PARX at 2025-11-13 15:39:36.244 -0600

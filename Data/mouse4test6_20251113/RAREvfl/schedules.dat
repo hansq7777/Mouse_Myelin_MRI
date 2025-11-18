@@ -1,0 +1,33 @@
+# Flip and signal schedules for last calculated parameters:
+#
+# you might visualize w gnuplot (Version 4.6 patchlevel 2,
+# maybe some later version will work as well). Call with
+# bash> gnuplot -p schedules_plt.gnu
+
+# T1=2000
+# T2=60
+# TE=120
+# ESP=20
+# TE_AT_ECHO=6
+# TE_CORR=54.88
+# TE_CORR_AT_ECHO=2
+# PL_LENGTH=8
+# PL_HEIGHT=0.19
+# Contrast=vfl_contrast_t2w
+
+ echo #   flip angle      signal    t2 ref
+   1       128.788         NAN       0.716
+   2       67.6645         NAN       0.513
+   3       41.1933         NAN       0.367
+   4       31.1442        0.19       0.263
+   5       33.0492        0.19       0.188
+   6       35.1139        0.19       0.135
+   7       38.5547        0.19       0.096
+   8       43.4843        0.19       0.069
+   9       50.6182        0.19       0.049
+  10       61.1126        0.19       0.035
+  11       78.3764        0.19       0.025
+  12       91.6557       0.161       0.018
+  13       105.206       0.136       0.013
+  14       134.194       0.115       0.009
+  15       174.095       0.097       0.006

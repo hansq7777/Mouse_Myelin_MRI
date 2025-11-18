@@ -1,0 +1,926 @@
+{
+    "TITLE": "Parameter List, ParaVision 6.0.1",
+    "JCAMPDX": 4.24,
+    "DATATYPE": "Parameter Values",
+    "ORIGIN": "Bruker BioSpin MRI GmbH",
+    "OWNER": "nmr",
+    "$VisuVersion": 3,
+    "$VisuUid": {
+        "maximum_length": 65,
+        "value": "<2.16.756.5.5.100.8323328.5287.1619715756.1>"
+    },
+    "$VisuCreator": {
+        "maximum_length": 65,
+        "value": "<ParaVision>"
+    },
+    "$VisuCreatorVersion": {
+        "maximum_length": 65,
+        "value": "<6.0.1>"
+    },
+    "$VisuCreationDate": "<2021-04-29T13:02:36,699-0400>",
+    "$VisuInstanceModality": {
+        "maximum_length": 65,
+        "value": "<MR>"
+    },
+    "$VisuCoreFrameCount": 35,
+    "$VisuCoreDim": 2,
+    "$VisuCoreSize": {
+        "dim": [
+            2
+        ],
+        "value": [
+            128,
+            96
+        ]
+    },
+    "$VisuCoreDimDesc": {
+        "dim": [
+            2
+        ],
+        "value": [
+            "spatial",
+            "spatial"
+        ]
+    },
+    "$VisuCoreExtent": {
+        "dim": [
+            2
+        ],
+        "value": [
+            19.2,
+            14.4
+        ]
+    },
+    "$VisuCoreFrameThickness": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0.5
+        ]
+    },
+    "$VisuCoreUnits": {
+        "dim": [
+            2,
+            65
+        ],
+        "value": [
+            "<mm>",
+            "<mm>"
+        ]
+    },
+    "$VisuCoreOrientation": {
+        "dim": [
+            35,
+            9
+        ],
+        "value": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+        ]
+    },
+    "$VisuCorePosition": {
+        "dim": [
+            35,
+            3
+        ],
+        "value": [
+            -9.6,
+            -4.2,
+            -6.8,
+            -9.6,
+            -4.2,
+            -6.3,
+            -9.6,
+            -4.2,
+            -5.8,
+            -9.6,
+            -4.2,
+            -5.3,
+            -9.6,
+            -4.2,
+            -4.8,
+            -9.6,
+            -4.2,
+            -4.3,
+            -9.6,
+            -4.2,
+            -3.8,
+            -9.6,
+            -4.2,
+            -3.3,
+            -9.6,
+            -4.2,
+            -2.8,
+            -9.6,
+            -4.2,
+            -2.3,
+            -9.6,
+            -4.2,
+            -1.8,
+            -9.6,
+            -4.2,
+            -1.3,
+            -9.6,
+            -4.2,
+            -0.8,
+            -9.6,
+            -4.2,
+            -0.3,
+            -9.6,
+            -4.2,
+            0.2,
+            -9.6,
+            -4.2,
+            0.7,
+            -9.6,
+            -4.2,
+            1.2,
+            -9.6,
+            -4.2,
+            1.7,
+            -9.6,
+            -4.2,
+            2.2,
+            -9.6,
+            -4.2,
+            2.7,
+            -9.6,
+            -4.2,
+            3.2,
+            -9.6,
+            -4.2,
+            3.7,
+            -9.6,
+            -4.2,
+            4.2,
+            -9.6,
+            -4.2,
+            4.7,
+            -9.6,
+            -4.2,
+            5.2,
+            -9.6,
+            -4.2,
+            5.7,
+            -9.6,
+            -4.2,
+            6.2,
+            -9.6,
+            -4.2,
+            6.7,
+            -9.6,
+            -4.2,
+            7.2,
+            -9.6,
+            -4.2,
+            7.7,
+            -9.6,
+            -4.2,
+            8.2,
+            -9.6,
+            -4.2,
+            8.7,
+            -9.6,
+            -4.2,
+            9.2,
+            -9.6,
+            -4.2,
+            9.7,
+            -9.6,
+            -4.2,
+            10.2
+        ]
+    },
+    "$VisuCoreDataMin": {
+        "dim": [
+            35
+        ],
+        "value": [
+            3.82057242478238,
+            4.79831738970106,
+            3.44070131663256,
+            2.52218616625418,
+            5.69373186215867,
+            2.0883017937439,
+            5.63290037137225,
+            1.08982768177217,
+            3.41713297435416,
+            6.86204506634063,
+            1.82784337082789,
+            2.76848240340969,
+            2.74574706949263,
+            3.16460994868331,
+            4.42084602412097,
+            5.73339395356382,
+            2.18686246627523,
+            4.66425733905367,
+            1.7396477535135,
+            3.0616038338105,
+            0.872501751203276,
+            6.07749412267897,
+            5.75180403197847,
+            3.61487121037502,
+            5.83089033334567,
+            5.37661956285734,
+            3.87849539057403,
+            2.25560113317151,
+            2.98432890768485,
+            5.87088083954241,
+            3.54592802415332,
+            4.63697050698851,
+            1.23473982852647,
+            1.39172835681331,
+            2.52606668546473
+        ]
+    },
+    "$VisuCoreDataMax": {
+        "dim": [
+            35
+        ],
+        "value": [
+            6424.57524114409,
+            6772.23998244606,
+            9501.63063121267,
+            10281.9360102343,
+            10333.4668391448,
+            11795.1885169666,
+            13758.4790847624,
+            10738.6075461791,
+            13807.2487113313,
+            13738.5486480699,
+            13744.01286521,
+            13270.138647102,
+            11131.4852508741,
+            15468.721503472,
+            14166.8826142152,
+            15350.1095670588,
+            15123.805524826,
+            15450.607201577,
+            15870.8699556138,
+            14385.1837456044,
+            13327.6343847222,
+            12814.7766887168,
+            7206.93073117225,
+            7160.37296664816,
+            25410.0853419047,
+            28502.1191611328,
+            28257.8966025625,
+            32766.5,
+            31109.4636234583,
+            27093.9699482363,
+            20408.1167181515,
+            18472.7485003821,
+            14914.668979557,
+            6781.28175274302,
+            2800.85257570468
+        ]
+    },
+    "$VisuCoreDataOffs": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$VisuCoreDataSlope": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081,
+            0.0181142389617081
+        ]
+    },
+    "$VisuCoreFrameType": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "MAGNITUDE_IMAGE"
+        ]
+    },
+    "$VisuCoreSlicePacksDef": [
+        0,
+        1
+    ],
+    "$VisuCoreSlicePacksSlices": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                0,
+                35
+            ]
+        ]
+    },
+    "$VisuCoreSlicePacksSliceDist": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0.5
+        ]
+    },
+    "$VisuCoreWordType": "_16BIT_SGN_INT",
+    "$VisuCoreByteOrder": "littleEndian",
+    "$VisuFGOrderDescDim": 1,
+    "$VisuFGOrderDesc": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                35,
+                "<FG_SLICE>",
+                "<>",
+                0,
+                2
+            ]
+        ]
+    },
+    "$VisuGroupDepVals": {
+        "dim": [
+            2
+        ],
+        "value": [
+            [
+                "<VisuCoreOrientation>",
+                0
+            ],
+            [
+                "<VisuCorePosition>",
+                0
+            ]
+        ]
+    },
+    "$VisuSubjectName": {
+        "maximum_length": 65,
+        "value": "<NR2>"
+    },
+    "$VisuSubjectId": {
+        "maximum_length": 65,
+        "value": "<Baron^uStructConcussion_NR2>"
+    },
+    "$VisuSubjectUid": {
+        "maximum_length": 65,
+        "value": "<2.16.756.5.5.100.8323328.6479.1619713259.540>"
+    },
+    "$VisuSubjectInstanceCreationDate": [
+        1619713259,
+        500,
+        -240.0
+    ],
+    "$VisuSubjectBirthDate": {
+        "maximum_length": 9,
+        "value": "<20191203>"
+    },
+    "$VisuSubjectSex": "UNKNOWN",
+    "$VisuSubjectType": "Quadruped",
+    "$VisuStudyUid": {
+        "maximum_length": 65,
+        "value": "<2.16.756.5.5.100.8323328.6479.1619713259.541>"
+    },
+    "$VisuStudyDate": "<2021-04-29T12:20:59,504-0400>",
+    "$VisuStudyId": {
+        "maximum_length": 65,
+        "value": "<20210429_01>"
+    },
+    "$VisuStudyNumber": 1,
+    "$VisuSubjectWeight": 0.001,
+    "$VisuStudyReferringPhysician": {
+        "maximum_length": 65,
+        "value": "<nmr>"
+    },
+    "$VisuStudyDescription": {
+        "maximum_length": 2048,
+        "value": "<\\DTI>"
+    },
+    "$VisuExperimentNumber": 2,
+    "$VisuProcessingNumber": 1,
+    "$VisuSeriesDate": "<2021-04-29T13:02:36,699-0400>",
+    "$VisuSubjectPosition": "Head_Prone",
+    "$VisuSeriesTypeId": {
+        "maximum_length": 65,
+        "value": "<ACQ_BRUKER_PVM>"
+    },
+    "$VisuSeriesComment": {
+        "maximum_length": 65,
+        "value": "<T2_TurboRARE_AX150150500_A16>"
+    },
+    "$VisuManufacturer": {
+        "maximum_length": 65,
+        "value": "<Bruker BioSpin MRI GmbH>"
+    },
+    "$VisuAcqSoftwareVersion": {
+        "maximum_length": 65,
+        "value": "<6.0.1>"
+    },
+    "$VisuInstitution": {
+        "maximum_length": 65,
+        "value": "<Western CFMM>"
+    },
+    "$VisuStation": {
+        "maximum_length": 65,
+        "value": "<BioSpec 94/30>"
+    },
+    "$VisuSystemOrderNumber": {
+        "maximum_length": 65,
+        "value": "<10264699>"
+    },
+    "$VisuAcqDate": "<2021-04-29T12:46:32,046-0400>",
+    "$VisuAcqEchoTrainLength": 8,
+    "$VisuAcqSequenceName": {
+        "maximum_length": 40,
+        "value": "<Bruker:RARE>"
+    },
+    "$VisuAcqNumberOfAverages": 16,
+    "$VisuAcqImagingFrequency": 400.17221337831,
+    "$VisuAcqImagedNucleus": {
+        "maximum_length": 8,
+        "value": "<1H>"
+    },
+    "$VisuAcqRepetitionTime": {
+        "dim": [
+            1
+        ],
+        "value": [
+            5000
+        ]
+    },
+    "$VisuAcqPhaseEncSteps": 96,
+    "$VisuAcqPixelBandwidth": 332.919034090909,
+    "$VisuAcqFlipAngle": 90,
+    "$VisuAcqSize": {
+        "dim": [
+            2
+        ],
+        "value": [
+            128,
+            96
+        ]
+    },
+    "$VisuAcqImageSizeAccellerated": false,
+    "$VisuAcqGradEncoding": {
+        "dim": [
+            2
+        ],
+        "value": [
+            "read_enc",
+            "phase_enc"
+        ]
+    },
+    "$VisuAcqEchoTime": {
+        "dim": [
+            1
+        ],
+        "value": [
+            40
+        ]
+    },
+    "$VisuAcquisitionProtocol": {
+        "maximum_length": 65,
+        "value": "<T2_TurboRARE_AX150150500_AX>"
+    },
+    "$VisuAcqScanTime": 960000,
+    "$VisuAcqAntiAlias": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$VisuAcqEchoSequenceType": "Both",
+    "$VisuAcqSpinsVelocityEncoded": false,
+    "$VisuAcqHasTimeOfFlightContrast": false,
+    "$VisuAcqIsEpiSequence": false,
+    "$VisuAcqSpectralSuppression": "FatSuppression",
+    "$VisuAcqKSpaceTraversal": "RectilinearTraversal",
+    "$VisuAcqEncodingOrder": {
+        "dim": [
+            2
+        ],
+        "value": [
+            "LinearEncoding",
+            "LinearEncoding"
+        ]
+    },
+    "$VisuAcqKSpaceTrajectoryCnt": 1,
+    "$VisuAcqKSpaceFiltering": {
+        "dim": [
+            2
+        ],
+        "value": [
+            "NO_WDW",
+            "NO_WDW"
+        ]
+    },
+    "$VisuAcqFlowCompensation": "FlowNone",
+    "$VisuAcqSpoiling": "GradientSpoiled",
+    "$VisuAcqPartialFourier": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$VisuAcqParallelReductionFactor": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$VisuAcqMagnetizationTransfer": false,
+    "$VisuAcqBloodSignalNulling": false,
+    "$VisuCardiacSynchUsed": false,
+    "$VisuRespSynchUsed": false
+}

@@ -1,0 +1,34 @@
+##TITLE=Parameter List, ParaVision 360 V3.6
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin GmbH & Co. KG
+##OWNER=nmrsu
+$$ Write Options: Symbolic Enums, RLE encoded arrays, symbol visibility
+$$ 2025-11-13 14:57:26.754 -0600  nmrsu@bi-bic-bruk400
+$$ /opt/nmrdata/PV-360.3.6/data/nmrsu/20251113_133139_RyanDilger_RD25MYELOMAP_Test_livemouse4_1_6/17/pdata/1/methreco
+$$ process /opt/PV-360.3.6/prog/bin/parxserver
+##$PVM_GradientLinearityCorrection=No
+##$RecoMethMode=B1MAP
+##$MaskThreshScale=1
+##$DiffComp=No
+##$DiffCoeff=1
+##$CalcSingleElemMaps=Yes
+##$PhaseSmoothing=( 3 )
+3 3 3
+##$PVM_NnDenoising=No
+##$PVM_NnNDenoisingLevel=1
+##$PVM_NnDenoisingLevel=( 1 )
+100
+##$PVM_NnDenoisingPre=No
+##$PVM_NnDenoisingLevelPre=0
+##$PVM_NnDenoisingDb=No
+##$PVM_NnDenoising3D=1
+##$PVM_NnCpuOnly=No
+##$PVM_NnParallelProcessing=1
+##$PVM_NnPatchSizeMax=0
+$$ @vis= MethodRecoGroup PVM_GradientLinearityCorrection RecoMethMode
+$$ @vis= MaskThreshScale DiffComp CalcSingleElemMaps PhaseSmoothing
+$$ @vis= NeuralNetworkGroup PVM_NnDenoising PVM_NnPatchSizeMax
+##END=
+$$ File finished by PARX at 2025-11-13 14:57:26.754 -0600
+$$ Restored from database at 2025/11/13 14:57:44.131

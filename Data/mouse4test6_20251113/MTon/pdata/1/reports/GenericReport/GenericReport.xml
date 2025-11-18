@@ -1,0 +1,2506 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en">
+<info>
+<title>Generic Acquisition Report</title>
+<subtitle>Parameters and Images</subtitle>
+<publisher>
+<publishername>Bruker BioSpin GmbH &amp; Co. KG</publishername>
+<address>
+<street>Rudolf-Plank-Str. 23</street>
+<postcode>D-76275</postcode>
+<city>Ettlingen</city>
+<country>Germany</country>
+<phone>+49 7243 7695 000</phone>
+</address>
+</publisher>
+<copyright>
+<year>2024</year>
+<holder>Bruker BioSpin GmbH &amp; Co. KG</holder>
+</copyright>
+<releaseinfo>ParaVision 360 V3.6</releaseinfo>
+</info>
+<section>
+<title>Identification</title>
+<table>
+<title>Selected Visu Parameters</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>VisuAcqDate</entry>
+<entry>13 Nov 2025 15:28:26.260 UTC-0600</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuAcqScanTime</entry>
+<entry>657900</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>VisuAcqSequenceName</entry>
+<entry>Bruker:FLASH</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuAcqSoftwareVersion</entry>
+<entry>PV-360.3.6</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuAcquisitionProtocol</entry>
+<entry>T1_FLASH_3D</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuCreator</entry>
+<entry>ParaVision</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuCreatorVersion</entry>
+<entry>360.3.6</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuExperimentNumber</entry>
+<entry>19</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuInstitution</entry>
+<entry>University of Illinois Urbana-Champaign</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuProcessingNumber</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuStation</entry>
+<entry>UIUC BAP94/30</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuStudyDate</entry>
+<entry>13 Nov 2025 13:31:39.378 UTC-0600</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuStudyDescription</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuStudyId</entry>
+<entry>Test_livemouse4</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuStudyNumber</entry>
+<entry>6</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectBirthDate</entry>
+<entry>20251013</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectComment</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectId</entry>
+<entry>RyanDilger_RD25MYELOMAP</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectName</entry>
+<entry>RyanDilger_RD25MYELOMAP^^^^</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectPosition</entry>
+<entry>Head_Prone</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectSex</entry>
+<entry>UNKNOWN</entry>
+<entry></entry>
+</row>
+<row>
+<entry>VisuSubjectWeight</entry>
+<entry>0.00100000</entry>
+<entry>kg</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Parameters</title>
+<section>
+<title>Routine</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_EchoTime</entry>
+<entry>2.50000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_RepetitionTime</entry>
+<entry>25.0000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_NAverages</entry>
+<entry>12</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_NRepetitions</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_ScanTimeStr</entry>
+<entry>0h10m57s900ms</entry>
+<entry></entry>
+</row>
+<row>
+<entry>ExcPulse1.Flipangle</entry>
+<entry>10.0000</entry>
+<entry>&#x00b0;</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SPackArrNSlices[0]</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SPackArrSliceOrient[0]</entry>
+<entry>coronal</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SPackArrReadOrient[0]</entry>
+<entry>H_F</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SliceThick</entry>
+<entry>9.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Matrix[0]</entry>
+<entry>150</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Matrix[1]</entry>
+<entry>65</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Matrix[2]</entry>
+<entry>45</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Fov[0]</entry>
+<entry>30.0000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Fov[1]</entry>
+<entry>13.0000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Fov[2]</entry>
+<entry>9.00000</entry>
+<entry>mm</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Contrast</title>
+<section>
+<title>Main</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_EchoTime</entry>
+<entry>2.50000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_RepetitionTime</entry>
+<entry>25.0000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>ExcPulse1.Flipangle</entry>
+<entry>10.0000</entry>
+<entry>&#x00b0;</entry>
+</row>
+<row>
+<entry>PVM_DummyScans</entry>
+<entry>50</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_DummyScansDur</entry>
+<entry>1250.00</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_NMovieFrames</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MotionSupOnOff</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>RFSpoiling</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>AngioMode</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FatSupOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FovSatOnOff</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SelIrOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransOnOff</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_InFlowSatOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TaggingOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_BlBloodOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EvolutionOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TriggerModule</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Fat Sup</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FatSupOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FatSupBandWidth</entry>
+<entry>1400.00</entry>
+<entry>Hz</entry>
+</row>
+<row>
+<entry>PVM_FatSupPulEnum</entry>
+<entry>gauss512</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FatSupSpoil.automatic</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FatSupModuleTime</entry>
+<entry>0.00000</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Fov Sat</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FovSatOnOff</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FovSatSliceOri[0]</entry>
+<entry>coronal</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FovSatThick[0]</entry>
+<entry>6.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_FovSatOffset[0]</entry>
+<entry>-5.61974</entry>
+<entry>mm</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FovSatPulEnum</entry>
+<entry>Calculated</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FovSatSpoil.automatic</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FovSatModuleTime</entry>
+<entry>2.16300</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Sel IR</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SelIrOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SelIrInvTime</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_SelIrPulEnum</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SelIrSpoiler.automatic</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SelIrSlabThick</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>%</entry>
+</row>
+<row>
+<entry>PVM_SelIrMinThick</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SelIrNSlabs</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SelIrModuleTime</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Sat Transfer</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SatTransOnOff</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransType</entry>
+<entry>MTC</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransPulseEnum</entry>
+<entry>gauss</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransPulseAmpl_uT</entry>
+<entry>5.00000</entry>
+<entry>&#x00b5;T</entry>
+</row>
+<row>
+<entry>PVM_SatTransNPulses</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransInterPulseDelay</entry>
+<entry>3.93136</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_SatTransSpoil.automatic</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransRefScan</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SatTransModuleTime</entry>
+<entry>14.1630</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_SatTransFreqInput</entry>
+<entry>by_value</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransFreqUnit</entry>
+<entry>unit_hz</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransFreqValues[0]</entry>
+<entry>3500.00</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransFreqRanges[0][0]</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransFreqRanges[0][1]</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransFreqRanges[0][2]</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SatTransModuleMeanRFPower</entry>
+<entry>401.940</entry>
+<entry>mW</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Flow Sat</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_InFlowSatOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_InFlowSatThick[0]</entry>
+<entry>4.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_InFlowSatSliceGap</entry>
+<entry>1.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_InFlowSatPos</entry>
+<entry>up</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FlowSatPulEnum</entry>
+<entry>Calculated</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_InFlowSatSpoil.automatic</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_InFlowSatModuleTime</entry>
+<entry>0.00000</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Tagging</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TaggingOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TaggingMode</entry>
+<entry>SPAMM</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TaggingDistance</entry>
+<entry>1.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_TaggingThick</entry>
+<entry>0.200000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_TaggingOffset1</entry>
+<entry>0.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_TaggingPulEnum</entry>
+<entry>gauss</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TaggingPulseElement</entry>
+<entry>0.0400000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_TaggingGradientStrength</entry>
+<entry>5.00000</entry>
+<entry>%</entry>
+</row>
+<row>
+<entry>PVM_TaggingGridDelay</entry>
+<entry>0.0100000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_TaggingSpoiler.automatic</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TaggingDir</entry>
+<entry>Tagging_grid</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TaggingMinDistance</entry>
+<entry>0.00100000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_TaggingAngle</entry>
+<entry>0.00000</entry>
+<entry>&#x00b0;</entry>
+</row>
+<row>
+<entry>PVM_TaggingOffset2</entry>
+<entry>0.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_TaggingPulseNumber</entry>
+<entry>5</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TaggingDelay</entry>
+<entry>0.0100000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_TaggingModuleTime</entry>
+<entry>0.00000</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Black Blood</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_BlBloodOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_BlBloodInvTime</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_BlBloodPulEnum</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_BlBloodSpoiler.automatic</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_BlBloodSlabThick[0]</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_BlBloodMinThick[0]</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_BlBloodSlabOffset[0]</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_BlBloodModuleTime</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Evolution</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_EvolutionOnOff</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_NEvolutionCycles</entry>
+<entry>2</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EvolutionMode</entry>
+<entry>Constant_Delay</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EvolutionTime[0]</entry>
+<entry>1.00000</entry>
+<entry>s</entry>
+</row>
+<row>
+<entry>PVM_EvolutionTime[1]</entry>
+<entry>0.00000</entry>
+<entry>s</entry>
+</row>
+<row>
+<entry>PVM_EvolutionDelay</entry>
+<entry>1.00000</entry>
+<entry>s</entry>
+</row>
+<row>
+<entry>PVM_EvolutionModuleTime</entry>
+<entry>0.00000</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<para>No parameters in column 2.</para>
+</section>
+<section>
+<title>Trigger</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TriggerModule</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TriggerMode</entry>
+<entry>per_PhaseStep</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TriggerDelay</entry>
+<entry>1.00000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_TriggerModuleTime</entry>
+<entry>0.00000</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<para>No parameters in column 2.</para>
+</section>
+</section>
+<section>
+<title>Resolution</title>
+<section>
+<title>Main</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SpatDimEnum</entry>
+<entry>3D</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_IsotropicFovRes</entry>
+<entry>Isot_None</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SliceThick</entry>
+<entry>9.00000</entry>
+<entry>mm</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_Matrix[0]</entry>
+<entry>150</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Matrix[1]</entry>
+<entry>65</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Matrix[2]</entry>
+<entry>45</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Fov[0]</entry>
+<entry>30.0000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Fov[1]</entry>
+<entry>13.0000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Fov[2]</entry>
+<entry>9.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SpatResol[0]</entry>
+<entry>0.200000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SpatResol[1]</entry>
+<entry>0.200000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SpatResol[2]</entry>
+<entry>0.200000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_AntiAlias[0]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AntiAlias[1]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AntiAlias[2]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Encoding</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_EncZf[0]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncZf[1]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncZf[2]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPpi[0]</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPpi[1]</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPpi[2]</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPpiRefLines[0]</entry>
+<entry>0</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPpiRefLines[1]</entry>
+<entry>0</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPpiRefLines[2]</entry>
+<entry>0</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPft[0]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPft[1]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPft[2]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPftOverscans[0]</entry>
+<entry>75</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPftOverscans[1]</entry>
+<entry>32</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncPftOverscans[2]</entry>
+<entry>22</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncOrder[0]</entry>
+<entry>LINEAR_ENC</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncOrder[1]</entry>
+<entry>LINEAR_ENC</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncOrder[2]</entry>
+<entry>LINEAR_ENC</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncStart[0]</entry>
+<entry>0.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncStart[1]</entry>
+<entry>-1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncStart[2]</entry>
+<entry>-1.00000</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_EncMatrix[0]</entry>
+<entry>150</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncMatrix[1]</entry>
+<entry>65</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncMatrix[2]</entry>
+<entry>45</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncTotalAccel</entry>
+<entry>1.33379</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MbEncNBands</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncCS</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_EncCSUndersampling</entry>
+<entry>75</entry>
+<entry>%</entry>
+</row>
+<row>
+<entry>PVM_EncCSCenterRatio</entry>
+<entry>25</entry>
+<entry>%</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+</section>
+<section>
+<title>Geometry</title>
+<section>
+<title>Main</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SliceThick</entry>
+<entry>9.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_ObjOrderScheme</entry>
+<entry>Interlaced</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MajSliceOri</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_Fov[0]</entry>
+<entry>30.0000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Fov[1]</entry>
+<entry>13.0000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_Fov[2]</entry>
+<entry>9.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_AntiAlias[0]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AntiAlias[1]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AntiAlias[2]</entry>
+<entry>1.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MbEncAccelFactor</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AtsBedPositionMode</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AtsChangeRefPos</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AtsNpos</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AtsMultiPosFov</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_AtsOverlap</entry>
+<entry>0.00000</entry>
+<entry>%</entry>
+</row>
+<row>
+<entry>PVM_AtsCentralSetup</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SPackArrNSlices[0]</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SPackArrSliceOrient[0]</entry>
+<entry>coronal</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SPackArrReadOrient[0]</entry>
+<entry>H_F</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SPackArrReadOffset[0]</entry>
+<entry>1.16364</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SPackArrPhase1Offset[0]</entry>
+<entry>-1.72101</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SPackArrSliceOffset[0]</entry>
+<entry>1.85803</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SPackArrSliceGapMode[0]</entry>
+<entry>non_contiguous</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_SPackArrSliceGap[0]</entry>
+<entry>0.300000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_SPackArrSliceDistance[0]</entry>
+<entry>9.30000</entry>
+<entry>mm</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+</section>
+<section>
+<title>Sequence</title>
+<section>
+<title>Main</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_EffSWh</entry>
+<entry>125000</entry>
+<entry>Hz</entry>
+</row>
+<row>
+<entry>PVM_EchoPosition</entry>
+<entry>50.0000</entry>
+<entry>%</entry>
+</row>
+<row>
+<entry>ExcPulse1Enum</entry>
+<entry>Calculated</entry>
+<entry></entry>
+</row>
+<row>
+<entry>ReadSpoiler.automatic</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>SliceSpoiler.automatic</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>Method</entry>
+<entry>Bruker:FLASH</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_AcquisitionTime</entry>
+<entry>1.20000</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>EncGradDur</entry>
+<entry>0.350333</entry>
+<entry>ms</entry>
+</row>
+<row>
+<entry>PVM_DriftCompYesNo</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Frequency Ch.1</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_Nucleus1Enum</entry>
+<entry>1H</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_FrqRefPpm[0]</entry>
+<entry>4.70000</entry>
+<entry>ppm</entry>
+</row>
+<row>
+<entry>PVM_FrqWorkOffsetPpm[0]</entry>
+<entry>0.00000</entry>
+<entry>ppm</entry>
+</row>
+<row>
+<entry>PVM_FrqWorkPpm[0]</entry>
+<entry>4.70000</entry>
+<entry>ppm</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FrqRef[0]</entry>
+<entry>400.313</entry>
+<entry>MHz</entry>
+</row>
+<row>
+<entry>PVM_FrqWorkOffset[0]</entry>
+<entry>0.00000</entry>
+<entry>Hz</entry>
+</row>
+<row>
+<entry>PVM_FrqWork[0]</entry>
+<entry>400.313</entry>
+<entry>MHz</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Transmit Ch.1</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_Nucleus1Enum</entry>
+<entry>1H</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_RefPowMod1</entry>
+<entry>AutoAdj</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_RefPowCh1</entry>
+<entry>2.19018</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_RefPowStat1</entry>
+<entry>Study: Adj by Bruker:AdjRefPowADJ_REF_POW</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TxCoilScMode1</entry>
+<entry>AutoAdj</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TxCoilAdjStat1</entry>
+<entry>System (Coil)</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TxCoilAmpScaling1[0]</entry>
+<entry>100.000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TxCoilAmpScaling1[1]</entry>
+<entry>100.000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TxCoilPhaseOffset1[0]</entry>
+<entry>0.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_TxCoilPhaseOffset1[1]</entry>
+<entry>90.0000</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+</section>
+<section>
+<title>Setup</title>
+<section>
+<title>Main</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_RefPowMod1</entry>
+<entry>AutoAdj</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_RefPowCh1</entry>
+<entry>2.19018</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_RefPowStat1</entry>
+<entry>Study: Adj by Bruker:AdjRefPowADJ_REF_POW</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_DeriveGains</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>ExcPulse1Ampl.patt</entry>
+<entry>0.119740</entry>
+<entry>dB</entry>
+</row>
+<row>
+<entry>PVM_RgJob</entry>
+<entry>job0</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_RgValue</entry>
+<entry>101.000</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>ExcPulse1Ampl.ppow</entry>
+<entry>0.972805</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>ExcPulse1Ampl.pampl</entry>
+<entry>6.97426</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Fat Sup</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FatSupPulAmpl.patt</entry>
+<entry>-5.20994</entry>
+<entry>dB</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FatSupPulAmpl.ppow</entry>
+<entry>3.31890</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_FatSupPulAmpl.pampl</entry>
+<entry>12.8820</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Fov Sat</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FovSatPulAmpl.patt</entry>
+<entry>-17.9821</entry>
+<entry>dB</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FovSatPulAmpl.ppow</entry>
+<entry>62.8356</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_FovSatPulAmpl.pampl</entry>
+<entry>56.0516</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Sel IR</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SelIrPulAmpl.patt</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>dB</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_SelIrPulAmpl.ppow</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_SelIrPulAmpl.pampl</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Flow Sat</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FlowSatPulAmpl.patt</entry>
+<entry>-17.9821</entry>
+<entry>dB</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_FlowSatPulAmpl.ppow</entry>
+<entry>62.8356</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_FlowSatPulAmpl.pampl</entry>
+<entry>56.0516</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Tagging</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TaggingPulAmpl.patt</entry>
+<entry>-24.9571</entry>
+<entry>dB</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TaggingPulAmpl.ppow</entry>
+<entry>313.119</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_TaggingPulAmpl.pampl</entry>
+<entry>125.124</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Black Blood</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_BlBloodPulAmpl.patt</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>dB</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_BlBloodPulAmpl.ppow</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>W</entry>
+</row>
+<row>
+<entry>PVM_BlBloodPulAmpl.pampl</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry>V</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>Auto Shim</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_ReqShimEnum</entry>
+<entry>Current_Shim</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MapShimLocShim</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MapShimStatus</entry>
+<entry>No map acquired. Mapshim ready.</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MapShimCalcStat</entry>
+<entry>Not Calculated.</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_MapShimVolDerive</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_MapShimVolMargin[0]</entry>
+<entry>0.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_MapShimVolMargin[1]</entry>
+<entry>0.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_MapShimVolMargin[2]</entry>
+<entry>0.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_MapShimVolShape</entry>
+<entry>Cuboid</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_DynamicShimEnable</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_DynamicShimSliceMargin</entry>
+<entry>1.00000</entry>
+<entry>mm</entry>
+</row>
+<row>
+<entry>PVM_DynamicShimEventDuration</entry>
+<entry>30.0000</entry>
+<entry>ms</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+<section>
+<title>StartupShim</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>PVM_TuneupShimAvailable</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_StartupShimAvailable</entry>
+<entry>false</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_StartupShimCond</entry>
+<entry>TuneupShim</entry>
+<entry></entry>
+</row>
+<row>
+<entry>PVM_StartupShimList</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<para>No parameters in column 2.</para>
+</section>
+<section>
+<title>Shim</title>
+<para>No parameters in this parameter card.</para>
+</section>
+</section>
+<section>
+<title>System</title>
+<section>
+<title>Coil Selection</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>CONFIG_SCAN_coil_configuration_name</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_operation_mode</entry>
+<entry>$Bis,1,20241031,2048,ROUTING,2#$Name,[1H] TX Volume Array, RX Surface Array#$OpMode,1.0,D/A,2.16.756.5.5.200.8323328.8454.1730396294.34#$TxCoil,1.0,1,RF RES 400 1H 112/086 QSN TO AD,BMRIDE,T12054V3,0120,1-2#$RxCoil,1.0,1,RF ARR 400 1H M.BR. 2x2 RO AD,BMRIDE,T11071V3,0093,1-4#$RfConn,1.0, Chan,1, Nuc,1H#$RfConn,1.0, Chan,1, TxSgu,2/3#$RfConn,1.0, TxSgu,2/3, Amp,2/3#$RfConn,1.0, Amp,2/3, TxPreamp,3/4#$RfConn,1.0, Chan,1, RxSgu,4/5/6/7#$RfConn,1.0, RxSgu,4/5/6/7, Rec,4/5/6/7#$RfDevProp,1.0, Amp,2/3, HpMode,On##$EndBis,9A,1D#</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_TxCoilsNames</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_transmit_coil_select[0]</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_transmit_coil_select[1]</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_RxCoilsNames</entry>
+<entry>1</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_receive_coil_select[0]</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_receive_coil_select[1]</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_receive_coil_select[2]</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+<row>
+<entry>CONFIG_SCAN_receive_coil_select[3]</entry>
+<entry>true</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<table>
+<title>Column 2</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>CONFIG_SCAN_show_routing</entry>
+<entry>&lt;No Value&gt;</entry>
+<entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</section>
+</section>
+<section>
+<title>Reconstruction</title>
+<table>
+<title>Column 1</title>
+<tgroup cols="3">
+<colspec colwidth="50*"></colspec>
+<colspec colwidth="40*"></colspec>
+<colspec colwidth="10*"></colspec>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Value</entry>
+<entry>Unit</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>RecoMethMode</entry>
+<entry>Default</entry>
+<entry></entry>
+</row>
+<row>
+<entry>WeightingMode</entry>
+<entry>positive_mask</entry>
+<entry></entry>
+</row>
+<row>
+<entry>MaskWeighting</entry>
+<entry>4.00000</entry>
+<entry></entry>
+</row>
+<row>
+<entry>GaussBroadening</entry>
+<entry>1.00000</entry>
+<entry>mm</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<para>No parameters in column 2.</para>
+</section>
+</section>
+<section>
+<title>Images</title>
+<figure>
+<title>Acquired Image 1/45</title>
+<mediaobject>
+<imageobject>
+<imagedata width="2.5in" format="png" align="center" fileref="Figures/Image_01.png"></imagedata>
+</imageobject>
+</mediaobject>
+</figure>
+<figure>
+<title>Acquired Image 23/45</title>
+<mediaobject>
+<imageobject>
+<imagedata width="2.5in" format="png" align="center" fileref="Figures/Image_23.png"></imagedata>
+</imageobject>
+</mediaobject>
+</figure>
+<figure>
+<title>Acquired Image 45/45</title>
+<mediaobject>
+<imageobject>
+<imagedata width="2.5in" format="png" align="center" fileref="Figures/Image_45.png"></imagedata>
+</imageobject>
+</mediaobject>
+</figure>
+</section>
+</article>

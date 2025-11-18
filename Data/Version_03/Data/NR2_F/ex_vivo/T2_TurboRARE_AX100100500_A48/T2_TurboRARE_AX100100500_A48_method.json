@@ -1,0 +1,1975 @@
+{
+    "TITLE": "Parameter List, ParaVision 6.0.1",
+    "JCAMPDX": 4.24,
+    "DATATYPE": "Parameter Values",
+    "ORIGIN": "Bruker BioSpin MRI GmbH",
+    "OWNER": "nmr",
+    "$Method": "<Bruker:RARE>",
+    "$PVM_EchoTime": 10,
+    "$EffectiveTE": {
+        "dim": [
+            1
+        ],
+        "value": [
+            30
+        ]
+    },
+    "$PVM_RareFactor": 8,
+    "$PVM_RepetitionTime": 5000,
+    "$PVM_NAverages": 48,
+    "$PVM_NRepetitions": 1,
+    "$PVM_NEchoImages": 1,
+    "$PVM_ScanTimeStr": {
+        "maximum_length": 16,
+        "value": "<1h12m0s0ms>"
+    },
+    "$PVM_ScanTime": 4320000,
+    "$PVM_DeriveGains": true,
+    "$ExcPulse1Enum": "<Calculated>",
+    "$ExcPulse1": [
+        2.1,
+        2000,
+        90,
+        true,
+        3,
+        4200,
+        0.236151639875348,
+        0.200434548747244,
+        0,
+        50,
+        0.193934942800121,
+        "<$ExcPulse1Shape>"
+    ],
+    "$ExcPulse1Ampl": [
+        0.193934942800121,
+        3.11396004149155,
+        7.12343933582199
+    ],
+    "$RefPulse1Enum": "<Calculated>",
+    "$RefPulse1": [
+        4,
+        850,
+        180,
+        true,
+        3,
+        3400,
+        0.160330341052973,
+        0.147821641310719,
+        1,
+        0,
+        0.419112197029588,
+        "<$RefPulse1Shape>"
+    ],
+    "$RefPulse1Ampl": [
+        0.419112197029588,
+        4.57772977047351,
+        3.77669700116843
+    ],
+    "$PVM_GradCalConst": 41620.5,
+    "$PVM_Nucleus1Enum": "<1H>",
+    "$PVM_Nucleus1": {
+        "maximum_length": 8,
+        "value": "<1H>"
+    },
+    "$PVM_RefPowMod1": "AutoAdj",
+    "$PVM_RefPowCh1": 0.0476954101017686,
+    "$PVM_RefPowStat1": {
+        "maximum_length": 1024,
+        "value": "<Study: Adj by AdjRefG (protocol ADJ_REFG)>"
+    },
+    "$PVM_Nucleus2Enum": "<1H>",
+    "$PVM_Nucleus3Enum": "<1H>",
+    "$PVM_Nucleus4Enum": "<1H>",
+    "$PVM_Nucleus5Enum": "<1H>",
+    "$PVM_Nucleus6Enum": "<1H>",
+    "$PVM_Nucleus7Enum": "<1H>",
+    "$PVM_Nucleus8Enum": "<1H>",
+    "$PVM_FrqRef": {
+        "dim": [
+            8
+        ],
+        "value": [
+            400.171702231436,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FrqWorkOffset": {
+        "dim": [
+            8
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FrqWork": {
+        "dim": [
+            8
+        ],
+        "value": [
+            400.171702231436,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FrqRefPpm": {
+        "dim": [
+            8
+        ],
+        "value": [
+            4.7,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FrqWorkOffsetPpm": {
+        "dim": [
+            8
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FrqWorkPpm": {
+        "dim": [
+            8
+        ],
+        "value": [
+            4.7,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_NucleiPpmWork": {
+        "dim": [
+            20
+        ],
+        "value": [
+            [
+                "<1H>",
+                4.7
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ],
+            [
+                "<none>",
+                0
+            ]
+        ]
+    },
+    "$PVM_SpatDimEnum": "<2D>",
+    "$PVM_IsotropicFovRes": "Isot_None",
+    "$PVM_Matrix": {
+        "dim": [
+            2
+        ],
+        "value": [
+            192,
+            144
+        ]
+    },
+    "$PVM_MinMatrix": {
+        "dim": [
+            2
+        ],
+        "value": [
+            32,
+            32
+        ]
+    },
+    "$PVM_MaxMatrix": {
+        "dim": [
+            2
+        ],
+        "value": [
+            2048,
+            2048
+        ]
+    },
+    "$PVM_DefMatrix": {
+        "dim": [
+            3
+        ],
+        "value": [
+            256,
+            256,
+            64
+        ]
+    },
+    "$PVM_AntiAlias": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$PVM_MaxAntiAlias": {
+        "dim": [
+            2
+        ],
+        "value": [
+            2,
+            8
+        ]
+    },
+    "$PVM_EncSpectroscopy": false,
+    "$PVM_EncUseMultiRec": false,
+    "$PVM_EncActReceivers": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "On"
+        ]
+    },
+    "$PVM_EncZf": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$PVM_EncPft": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$PVM_EncPftOverscans": {
+        "dim": [
+            2
+        ],
+        "value": [
+            96,
+            72
+        ]
+    },
+    "$PVM_EncPpi": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            1
+        ]
+    },
+    "$PVM_EncPpiRefLines": {
+        "dim": [
+            2
+        ],
+        "value": [
+            0,
+            0
+        ]
+    },
+    "$PVM_EncOrder": {
+        "dim": [
+            2
+        ],
+        "value": [
+            "LINEAR_ENC",
+            "LINEAR_ENC"
+        ]
+    },
+    "$PVM_EncStart": {
+        "dim": [
+            2
+        ],
+        "value": [
+            0,
+            -0.7
+        ]
+    },
+    "$PVM_EncNReceivers": 1,
+    "$PVM_EncAvailReceivers": 8,
+    "$PVM_EncChanScaling": {
+        "dim": [
+            1
+        ],
+        "value": [
+            1
+        ]
+    },
+    "$PVM_EncMatrix": {
+        "dim": [
+            2
+        ],
+        "value": [
+            192,
+            144
+        ]
+    },
+    "$PVM_EncTotalAccel": 1,
+    "$PVM_EncSteps1": {
+        "dim": [
+            144
+        ],
+        "value": [
+            -45.0,
+            -27.0,
+            -9.0,
+            9,
+            27,
+            45,
+            63,
+            -63.0,
+            -44.0,
+            -26.0,
+            -8.0,
+            10,
+            28,
+            46,
+            64,
+            -62.0,
+            -43.0,
+            -25.0,
+            -7.0,
+            11,
+            29,
+            47,
+            65,
+            -61.0,
+            -42.0,
+            -24.0,
+            -6.0,
+            12,
+            30,
+            48,
+            66,
+            -60.0,
+            -41.0,
+            -23.0,
+            -5.0,
+            13,
+            31,
+            49,
+            67,
+            -59.0,
+            -40.0,
+            -22.0,
+            -4.0,
+            14,
+            32,
+            50,
+            68,
+            -58.0,
+            -39.0,
+            -21.0,
+            -3.0,
+            15,
+            33,
+            51,
+            69,
+            -57.0,
+            -38.0,
+            -20.0,
+            -2.0,
+            16,
+            34,
+            52,
+            70,
+            -56.0,
+            -37.0,
+            -19.0,
+            -1.0,
+            17,
+            35,
+            53,
+            71,
+            -55.0,
+            -36.0,
+            -18.0,
+            0,
+            18,
+            36,
+            54,
+            -72.0,
+            -54.0,
+            -35.0,
+            -17.0,
+            1,
+            19,
+            37,
+            55,
+            -71.0,
+            -53.0,
+            -34.0,
+            -16.0,
+            2,
+            20,
+            38,
+            56,
+            -70.0,
+            -52.0,
+            -33.0,
+            -15.0,
+            3,
+            21,
+            39,
+            57,
+            -69.0,
+            -51.0,
+            -32.0,
+            -14.0,
+            4,
+            22,
+            40,
+            58,
+            -68.0,
+            -50.0,
+            -31.0,
+            -13.0,
+            5,
+            23,
+            41,
+            59,
+            -67.0,
+            -49.0,
+            -30.0,
+            -12.0,
+            6,
+            24,
+            42,
+            60,
+            -66.0,
+            -48.0,
+            -29.0,
+            -11.0,
+            7,
+            25,
+            43,
+            61,
+            -65.0,
+            -47.0,
+            -28.0,
+            -10.0,
+            8,
+            26,
+            44,
+            62,
+            -64.0,
+            -46.0
+        ]
+    },
+    "$PVM_EncSteps2": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$PVM_EncCentralStep1": 3,
+    "$PVM_EncValues1": {
+        "dim": [
+            144
+        ],
+        "value": [
+            -0.625,
+            -0.375,
+            -0.125,
+            0.125,
+            0.375,
+            0.625,
+            0.875,
+            -0.875,
+            -0.611111111111111,
+            -0.361111111111111,
+            -0.111111111111111,
+            0.138888888888889,
+            0.388888888888889,
+            0.638888888888889,
+            0.888888888888889,
+            -0.861111111111111,
+            -0.597222222222222,
+            -0.347222222222222,
+            -0.0972222222222222,
+            0.152777777777778,
+            0.402777777777778,
+            0.652777777777778,
+            0.902777777777778,
+            -0.847222222222222,
+            -0.583333333333333,
+            -0.333333333333333,
+            -0.0833333333333333,
+            0.166666666666667,
+            0.416666666666667,
+            0.666666666666667,
+            0.916666666666667,
+            -0.833333333333333,
+            -0.569444444444444,
+            -0.319444444444444,
+            -0.0694444444444444,
+            0.180555555555556,
+            0.430555555555556,
+            0.680555555555556,
+            0.930555555555556,
+            -0.819444444444444,
+            -0.555555555555556,
+            -0.305555555555556,
+            -0.0555555555555556,
+            0.194444444444444,
+            0.444444444444444,
+            0.694444444444444,
+            0.944444444444444,
+            -0.805555555555556,
+            -0.541666666666667,
+            -0.291666666666667,
+            -0.0416666666666667,
+            0.208333333333333,
+            0.458333333333333,
+            0.708333333333333,
+            0.958333333333333,
+            -0.791666666666667,
+            -0.527777777777778,
+            -0.277777777777778,
+            -0.0277777777777778,
+            0.222222222222222,
+            0.472222222222222,
+            0.722222222222222,
+            0.972222222222222,
+            -0.777777777777778,
+            -0.513888888888889,
+            -0.263888888888889,
+            -0.0138888888888889,
+            0.236111111111111,
+            0.486111111111111,
+            0.736111111111111,
+            0.986111111111111,
+            -0.763888888888889,
+            -0.5,
+            -0.25,
+            0,
+            0.25,
+            0.5,
+            0.75,
+            -1.0,
+            -0.75,
+            -0.486111111111111,
+            -0.236111111111111,
+            0.0138888888888889,
+            0.263888888888889,
+            0.513888888888889,
+            0.763888888888889,
+            -0.986111111111111,
+            -0.736111111111111,
+            -0.472222222222222,
+            -0.222222222222222,
+            0.0277777777777778,
+            0.277777777777778,
+            0.527777777777778,
+            0.777777777777778,
+            -0.972222222222222,
+            -0.722222222222222,
+            -0.458333333333333,
+            -0.208333333333333,
+            0.0416666666666667,
+            0.291666666666667,
+            0.541666666666667,
+            0.791666666666667,
+            -0.958333333333333,
+            -0.708333333333333,
+            -0.444444444444444,
+            -0.194444444444444,
+            0.0555555555555556,
+            0.305555555555556,
+            0.555555555555556,
+            0.805555555555556,
+            -0.944444444444444,
+            -0.694444444444444,
+            -0.430555555555556,
+            -0.180555555555556,
+            0.0694444444444444,
+            0.319444444444444,
+            0.569444444444444,
+            0.819444444444444,
+            -0.930555555555556,
+            -0.680555555555556,
+            -0.416666666666667,
+            -0.166666666666667,
+            0.0833333333333333,
+            0.333333333333333,
+            0.583333333333333,
+            0.833333333333333,
+            -0.916666666666667,
+            -0.666666666666667,
+            -0.402777777777778,
+            -0.152777777777778,
+            0.0972222222222222,
+            0.347222222222222,
+            0.597222222222222,
+            0.847222222222222,
+            -0.902777777777778,
+            -0.652777777777778,
+            -0.388888888888889,
+            -0.138888888888889,
+            0.111111111111111,
+            0.361111111111111,
+            0.611111111111111,
+            0.861111111111111,
+            -0.888888888888889,
+            -0.638888888888889
+        ]
+    },
+    "$PVM_EffSWh": 42613.6363636364,
+    "$EncGradDur": 0.5372,
+    "$PVM_AcquisitionTime": 4.5056,
+    "$ReadDephDur": 1.74,
+    "$PVM_MinEchoTime": 9.34711967537927,
+    "$RepetitionSpoiler": [
+        true,
+        4,
+        0.5,
+        38.4425943945892
+    ],
+    "$PVM_DigAutSet": true,
+    "$PVM_DigQuad": true,
+    "$PVM_DigFilter": "<Digital_Sharp>",
+    "$PVM_DigRes": 21,
+    "$PVM_DigDw": 0.0234666666666667,
+    "$PVM_DigSw": 42613.6363636364,
+    "$PVM_DigNp": 192,
+    "$PVM_DigShift": 68,
+    "$PVM_DigShiftDbl": 68,
+    "$PVM_DigGroupDel": 1.59573333333333,
+    "$PVM_DigDur": 4.5056,
+    "$PVM_DigEndDelMin": 0,
+    "$PVM_DigEndDelOpt": 0.1088,
+    "$EchoSpoilingAuto": true,
+    "$EchoSpoilingSlice": 1,
+    "$EchoSpoilingSliceEff": 1,
+    "$EchoSpoilingRead": 0.25,
+    "$EchoSpoilingReadEff": 0.25,
+    "$PVM_Isotropic": "Isotropic_None",
+    "$PVM_Fov": {
+        "dim": [
+            2
+        ],
+        "value": [
+            19.2,
+            14.4
+        ]
+    },
+    "$PVM_FovCm": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1.92,
+            1.44
+        ]
+    },
+    "$PVM_SpatResol": {
+        "dim": [
+            2
+        ],
+        "value": [
+            0.1,
+            0.1
+        ]
+    },
+    "$PVM_SliceThick": 0.5,
+    "$PVM_ObjOrderScheme": "Interlaced",
+    "$PVM_ObjOrderList": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14,
+            16,
+            18,
+            20,
+            22,
+            24,
+            26,
+            28,
+            30,
+            32,
+            34,
+            1,
+            3,
+            5,
+            7,
+            9,
+            11,
+            13,
+            15,
+            17,
+            19,
+            21,
+            23,
+            25,
+            27,
+            29,
+            31,
+            33
+        ]
+    },
+    "$PVM_NSPacks": 1,
+    "$PVM_SPackArrNSlices": {
+        "dim": [
+            1
+        ],
+        "value": [
+            35
+        ]
+    },
+    "$PVM_MajSliceOri": false,
+    "$PVM_SPackArrSliceOrient": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "axial"
+        ]
+    },
+    "$PVM_SPackArrReadOrient": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "L_R"
+        ]
+    },
+    "$PVM_SPackArrReadOffset": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$PVM_SPackArrPhase1Offset": {
+        "dim": [
+            1
+        ],
+        "value": [
+            -1.0
+        ]
+    },
+    "$PVM_SPackArrPhase2Offset": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$PVM_SPackArrSliceOffset": {
+        "dim": [
+            1
+        ],
+        "value": [
+            3
+        ]
+    },
+    "$PVM_SPackArrSliceGapMode": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "contiguous"
+        ]
+    },
+    "$PVM_SPackArrSliceGap": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$PVM_SPackArrSliceDistance": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0.5
+        ]
+    },
+    "$PVM_SPackArrGradOrient": {
+        "dim": [
+            1,
+            3,
+            3
+        ],
+        "value": [
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+        ]
+    },
+    "$PVM_SliceGeo": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                "1 0 0 0 -1 0 0 0 -1",
+                "0 1 -3)",
+                "19.2 14.4 17.5",
+                "<+R;read> <+P;phase> <+S;slice>",
+                "0)",
+                35,
+                1,
+                256,
+                0.5,
+                0,
+                false
+            ]
+        ]
+    },
+    "$PVM_SliceGeoObj": [
+        "<BRUKER_SLICEPACKAGE>",
+        "GeoCuboidPackId",
+        "Standard_GobjShape",
+        "<PVM_SliceGeo>",
+        "<PVM_ObjOrderList>",
+        0,
+        "<R;read> <P;phase> <S;slice>",
+        true,
+        4195848
+    ],
+    "$PVM_EffPhase0Offset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_EffPhase1Offset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0
+        ]
+    },
+    "$PVM_EffPhase2Offset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_EffSliceOffset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            -5.5,
+            -5.0,
+            -4.5,
+            -4.0,
+            -3.5,
+            -3.0,
+            -2.5,
+            -2.0,
+            -1.5,
+            -1.0,
+            -0.5,
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5,
+            3,
+            3.5,
+            4,
+            4.5,
+            5,
+            5.5,
+            6,
+            6.5,
+            7,
+            7.5,
+            8,
+            8.5,
+            9,
+            9.5,
+            10,
+            10.5,
+            11,
+            11.5
+        ]
+    },
+    "$PVM_EffReadOffset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_Phase0Offset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_Phase1Offset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0
+        ]
+    },
+    "$PVM_Phase2Offset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_SliceOffset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            -5.5,
+            -5.0,
+            -4.5,
+            -4.0,
+            -3.5,
+            -3.0,
+            -2.5,
+            -2.0,
+            -1.5,
+            -1.0,
+            -0.5,
+            0,
+            0.5,
+            1,
+            1.5,
+            2,
+            2.5,
+            3,
+            3.5,
+            4,
+            4.5,
+            5,
+            5.5,
+            6,
+            6.5,
+            7,
+            7.5,
+            8,
+            8.5,
+            9,
+            9.5,
+            10,
+            10.5,
+            11,
+            11.5
+        ]
+    },
+    "$PVM_ReadOffset": {
+        "dim": [
+            35
+        ],
+        "value": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_DummyScans": 0,
+    "$PVM_DummyScansDur": 0,
+    "$PVM_FreqDriftYN": false,
+    "$PVM_TriggerModule": "Off",
+    "$PVM_TriggerMode": "per_PhaseStep",
+    "$PVM_TriggerDelay": 1,
+    "$PVM_TriggerDur": 0.01,
+    "$PVM_TriggerModuleTime": 0,
+    "$PVM_EvolutionOnOff": "Off",
+    "$PVM_NEvolutionCycles": 2,
+    "$PVM_EvolutionCycles": 1,
+    "$PVM_EvolutionMode": "Constant_Delay",
+    "$PVM_EvolutionTime": {
+        "dim": [
+            2
+        ],
+        "value": [
+            1,
+            0
+        ]
+    },
+    "$PVM_EvolutionDelay": 1,
+    "$PVM_EvolutionModuleTime": 0,
+    "$PVM_SelIrOnOff": "Off",
+    "$PVM_BlBloodOnOff": "Off",
+    "$PVM_FatSupOnOff": "On",
+    "$PVM_FatSupPulEnum": "<gauss512>",
+    "$PVM_FatSupPul": [
+        1.95714285714286,
+        1400,
+        90,
+        false,
+        4,
+        2740,
+        0.4150688,
+        0.295357137487272,
+        0,
+        50,
+        0.0722755415038008,
+        "<gauss512.exc>"
+    ],
+    "$PVM_FatSupPulAmpl": [
+        0.0722755415038008,
+        1.90099370729891,
+        11.4100864581806
+    ],
+    "$PVM_FatSupBandWidth": 1400,
+    "$PVM_FatSupSpoil": [
+        true,
+        3,
+        0.3,
+        48.0532429932365
+    ],
+    "$PVM_FatSupModuleTime": 2.29214285714286,
+    "$PVM_FatSupPerform": true,
+    "$PVM_FatSupRampTime": 0.1,
+    "$PVM_FatSupAmpEnable": 0.025,
+    "$PVM_FatSupGradWait": 0.01,
+    "$PVM_FatSupFL": {
+        "dim": [
+            1
+        ],
+        "value": [
+            -1400.59437501646
+        ]
+    },
+    "$PVM_FatSupRfLength": 1957.14285714286,
+    "$PVM_FatSupSpoilDur": 0.2,
+    "$PVM_FatSupSpoilAmp": 48.0532429932365,
+    "$PVM_MagTransOnOff": "Off",
+    "$PVM_MagTransPulse1Enum": "<gauss>",
+    "$PVM_MagTransPulse1": [
+        1.82666666666667,
+        1500,
+        117.1,
+        false,
+        4,
+        2740,
+        0.4181723,
+        0.298723764675971,
+        0,
+        50,
+        0.138380924622162,
+        "<gauss.exc>"
+    ],
+    "$PVM_MagTransPulse1Ampl": [
+        0.138380924622162,
+        2.63040799708108,
+        8.58923771890053
+    ],
+    "$PVM_MagTransPower": 10.0017644460368,
+    "$PVM_MagTransOffset": 1500,
+    "$PVM_MagTransInterDelay": 0.01,
+    "$PVM_MagTransPulsNumb": 1,
+    "$PVM_MagTransSpoil": [
+        true,
+        5,
+        2,
+        12.0133107483091
+    ],
+    "$PVM_MagTransSpoiler": 12.0133107483091,
+    "$PVM_MagTransModuleTime": 0,
+    "$PVM_MagTransFL": {
+        "dim": [
+            1
+        ],
+        "value": [
+            1500
+        ]
+    },
+    "$PVM_MtD0": 1e-06,
+    "$PVM_MtD1": 1e-06,
+    "$PVM_MtD2": 1e-06,
+    "$PVM_MtD3": 1e-06,
+    "$PVM_MtP0": 10,
+    "$PVM_MtLp0": 0,
+    "$PVM_FovSatOnOff": "Off",
+    "$PVM_FovSatPulEnum": "<Calculated>",
+    "$PVM_FovSatPul": [
+        1.2,
+        5000,
+        52.7249018841282,
+        true,
+        4,
+        6000,
+        0.16282380690998,
+        0.141593885075405,
+        0,
+        50,
+        0.428770430943791,
+        "<$PVM_FovSatPulShape>"
+    ],
+    "$PVM_FovSatPulAmpl": [
+        0.428770430943791,
+        4.63017510977604,
+        3.67775172290876
+    ],
+    "$PVM_FovSatNSlices": 1,
+    "$PVM_FovSatThick": {
+        "dim": [
+            1
+        ],
+        "value": [
+            4
+        ]
+    },
+    "$PVM_FovSatOffset": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$PVM_FovSatSpoil": [
+        true,
+        10,
+        0.8,
+        7.5083192176932
+    ],
+    "$PVM_FovSatSpoilDur": 0.7,
+    "$PVM_FovSatSpoilAmp": 7.5083192176932,
+    "$PVM_FovSatModuleTime": 0,
+    "$PVM_FovSatGrad": {
+        "dim": [
+            1,
+            3
+        ],
+        "value": [
+            -3.00332768707728,
+            0,
+            0
+        ]
+    },
+    "$PVM_FovSatRampTime": 0.1,
+    "$PVM_FovSatAmpEnable": 0.025,
+    "$PVM_FovSatGradWait": 0.01,
+    "$PVM_FovSatSliceOri": {
+        "dim": [
+            1
+        ],
+        "value": [
+            "sagittal"
+        ]
+    },
+    "$PVM_FovSatSliceOriMat": {
+        "dim": [
+            1,
+            9
+        ],
+        "value": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            -1.0,
+            -1.0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FovSatSliceVec": {
+        "dim": [
+            1,
+            3
+        ],
+        "value": [
+            -1.0,
+            0,
+            0
+        ]
+    },
+    "$PVM_FovSatSlicePos": {
+        "dim": [
+            1,
+            2
+        ],
+        "value": [
+            0,
+            0
+        ]
+    },
+    "$PVM_FovSatFL": {
+        "dim": [
+            1
+        ],
+        "value": [
+            0
+        ]
+    },
+    "$PVM_FovSatRfLength": 1200,
+    "$PVM_FovSatGeoObj": [
+        "<BRUKER_FOVSAT>",
+        "GeoPlanarId",
+        "Standard_GobjShape",
+        "<PVM_FovSatGeoCub>",
+        "<>",
+        0,
+        "<1;first> <2;second> <S;slice>",
+        true,
+        524384
+    ],
+    "$PVM_FovSatGeoCub": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                "0 1 0 0 0 -1 -1 0 0",
+                "0 0 0)",
+                "30 30 4",
+                "<+1;first> <+2;second> <+S;slice>",
+                "0)",
+                1,
+                1,
+                1,
+                4,
+                0,
+                false
+            ]
+        ]
+    },
+    "$PVM_InFlowSatOnOff": "Off",
+    "$PVM_InFlowSatNSlices": 1,
+    "$PVM_InFlowSatThick": {
+        "dim": [
+            1
+        ],
+        "value": [
+            4
+        ]
+    },
+    "$PVM_InFlowSatMinThick": 0.120133107483091,
+    "$PVM_InFlowSatSliceGap": 1,
+    "$PVM_FlowSatGeoObj": [
+        "<BRUKER_FLOWSAT>",
+        "GeoPlanarId",
+        "Standard_GobjShape",
+        "<PVM_FlowSatGeoCub>",
+        "<>",
+        0,
+        "<1;first> <2;second> <S;slice>",
+        true,
+        553191
+    ],
+    "$PVM_FlowSatGeoCub": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                "-1 0 0 0 1 0 0 0 -1",
+                "0 0 -7.35)",
+                "42 42 4",
+                "<+1;first> <+2;second> <+S;slice>",
+                "0)",
+                1,
+                1,
+                1,
+                4,
+                0,
+                false
+            ]
+        ]
+    },
+    "$PVM_FlowSatPulEnum": "<Calculated>",
+    "$PVM_FlowSatPul": [
+        1.2,
+        5000,
+        52.7249018841282,
+        true,
+        4,
+        6000,
+        0.16282380690998,
+        0.141593885075405,
+        0,
+        50,
+        0.428770430943791,
+        "<$PVM_FlowSatPulShape>"
+    ],
+    "$PVM_FlowSatPulAmpl": [
+        0.428770430943791,
+        4.63017510977604,
+        3.67775172290876
+    ],
+    "$PVM_InFlowSatSpoil": [
+        true,
+        5,
+        0.3,
+        10.0110922902576
+    ],
+    "$PVM_InFlowSatPos": "up",
+    "$PVM_InFlowSatModuleTime": 0,
+    "$PVM_InFlowSatFL": {
+        "dim": [
+            35
+        ],
+        "value": [
+            -2812.5,
+            -1562.5,
+            -312.5,
+            937.5,
+            2187.5,
+            3437.5,
+            4687.5,
+            5937.5,
+            7187.5,
+            8437.5,
+            9687.5,
+            10937.5,
+            12187.5,
+            13437.5,
+            14687.5,
+            15937.5,
+            17187.5,
+            18437.5,
+            -2187.5,
+            -937.5,
+            312.5,
+            1562.5,
+            2812.5,
+            4062.5,
+            5312.5,
+            6562.5,
+            7812.5,
+            9062.5,
+            10312.5,
+            11562.5,
+            12812.5,
+            14062.5,
+            15312.5,
+            16562.5,
+            17812.5
+        ]
+    },
+    "$PVM_SfD0": 0.0001,
+    "$PVM_SfD1": 2.5e-05,
+    "$PVM_SfD2": 0.0003,
+    "$PVM_SfP0": 1200,
+    "$PVM_SfLp0": 1,
+    "$PVM_TaggingOnOff": "Off",
+    "$PVM_TaggingPulEnum": "<bp>",
+    "$PVM_TaggingPul": [
+        0.2,
+        6400,
+        54.2038208911202,
+        false,
+        3,
+        1280,
+        1,
+        1,
+        0,
+        50,
+        0.432505246703417,
+        "<bp.exc>"
+    ],
+    "$PVM_TaggingPulAmpl": [
+        0.432505246703417,
+        4.65029701580134,
+        3.64008619758656
+    ],
+    "$PVM_TaggingMode": "SPAMM",
+    "$PVM_TaggingDir": "Tagging_grid",
+    "$PVM_TaggingDistance": 1,
+    "$PVM_TaggingMinDistance": 0.001,
+    "$PVM_TaggingThick": 0.2,
+    "$PVM_TaggingOffset1": 0,
+    "$PVM_TaggingOffset2": 0,
+    "$PVM_TaggingAngle": 0,
+    "$PVM_TaggingDelay": 0.01,
+    "$PVM_TaggingModuleTime": 0,
+    "$PVM_TaggingInterPulseDelay": 0.620532429932365,
+    "$PVM_TaggingPulseNumber": 5,
+    "$PVM_TaggingPulseElement": 0.04,
+    "$PVM_TaggingGradientStrength": 5,
+    "$PVM_TaggingGridDelay": 0.01,
+    "$PVM_TaggingFL": {
+        "dim": [
+            2
+        ],
+        "value": [
+            0,
+            0
+        ]
+    },
+    "$PVM_TaggingD0": 1e-05,
+    "$PVM_TaggingD1": 1e-05,
+    "$PVM_TaggingD2": 0.000480532429932365,
+    "$PVM_TaggingD3": 0.000380532429932365,
+    "$PVM_TaggingD4": 0.0001,
+    "$PVM_TaggingD5": 2.5e-05,
+    "$PVM_TaggingP0": 40,
+    "$PVM_TaggingLp0": 4,
+    "$PVM_TaggingGradAmp1": 5,
+    "$PVM_TaggingGradAmp2": -0.0,
+    "$PVM_TaggingGradAmp3": 0,
+    "$PVM_TaggingGradAmp4": 5,
+    "$PVM_TaggingSpoiler": [
+        true,
+        1,
+        0.480532429932365,
+        50
+    ],
+    "$PVM_MotionSupOnOff": "On",
+    "$PVM_FlipBackOnOff": "On",
+    "$PVM_MapShimReady": true,
+    "$PVM_MapShimLocShim": false,
+    "$PVM_MapShimStatus": {
+        "maximum_length": 128,
+        "value": "<Mapshim ready.>"
+    },
+    "$PVM_MapShimCalcStat": {
+        "maximum_length": 256,
+        "value": "<Not Calculated.>"
+    },
+    "$PVM_MapShimNSets": 1,
+    "$PVM_MapShimSets": {
+        "dim": [
+            1
+        ],
+        "value": [
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        ]
+    },
+    "$PVM_MapShimNVolumes": 1,
+    "$PVM_MapShimVolShape": "Cuboid",
+    "$PVM_StudyB0Map": [
+        "</opt/PV6.0.1/data/nmr>",
+        "<20210512_133655_Microstructural_Imaging_of_Concussion_Baron_2_1>",
+        25,
+        1
+    ],
+    "$PVM_StudyB0MapShimset": [
+        0,
+        465,
+        0,
+        0,
+        0,
+        1812,
+        202,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "$PVM_ReqShimEnum": "Current_Shim",
+    "$PVM_MapShimUseShims": "AllShims",
+    "$PVM_MapShimVolDerive": false,
+    "$PVM_MapShimVolMargin": {
+        "dim": [
+            3
+        ],
+        "value": [
+            0,
+            0,
+            0
+        ]
+    },
+    "$PVM_GeoObj": {
+        "dim": [
+            1,
+            65
+        ],
+        "value": [
+            "<PVM_SliceGeoObj>"
+        ]
+    },
+    "$PVM_ExportHandler": {
+        "dim": [
+            3
+        ],
+        "value": [
+            [
+                "<BRUKER_PARIMPORT_SLICEGEO>",
+                "<>",
+                "<Slice Geometry>"
+            ],
+            [
+                "<BRUKER_PARIMPORT_FOVSAT>",
+                "<>",
+                "<FOV Saturation>"
+            ],
+            [
+                "<BRUKER_PARIMPORT_SLICEORIENT>",
+                "<>",
+                "<Slice Orientation>"
+            ]
+        ]
+    }
+}

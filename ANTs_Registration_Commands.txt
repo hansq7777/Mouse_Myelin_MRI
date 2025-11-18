@@ -1,0 +1,16 @@
+#This text file includes some ANTs registration commands which can be run on the command line. These outputs have been included.
+
+#To create a template (all the images to be used for template construction should be in the same folder, so the last '*.nii.gz' is referring to all of these images)
+antsMultivariateTemplateConstruction2.sh -d 3 -c 2 -j 16 -k 1 -o template_ *.nii.gz
+
+#The commands below assume we're in the Registration folder
+#Register T2 to atlas:
+antsRegistration --dimensionality 3 --float 0 --interpolation Linear --winsorize-image-intensities [0.005,0.995] --use-histogram-matching 0 --initial-moving-transform [atlas/TMBTA_Brain_Template_reorient_smoothed0_2_RS_Gaussian.nii.gz,ANTStemplate_T2/T2_template.nii.gz,1] -t Rigid[0.1] -m MI[atlas/TMBTA_Brain_Template_reorient_smoothed0_2_RS_Gaussian.nii.gz,ANTStemplate_T2/T2_template.nii.gz,1,32] -c 10000x10000x10000x10000x10000 -s 8x6x4x2x0mm -f 5x4x3x2x1 -t Affine[0.1] -m MI[atlas/TMBTA_Brain_Template_reorient_smoothed0_2_RS_Gaussian.nii.gz,ANTStemplate_T2/T2_template.nii.gz,1,32] -c 10000x10000x10000x10000x10000 -s 8x6x4x2x0mm -f 5x4x3x2x1 -t SyN[0.00005] -m MI[atlas/TMBTA_Brain_Template_reorient_smoothed0_2_RS_Gaussian.nii.gz,ANTStemplate_T2/T2_template.nii.gz,1,32] -c 100x70x20 -f 3x2x1 -s 4x2x0mm -u true -l 1 -o [T2template_to_atlas/T2_atlas_SynMI0.00005_transform,T2template_to_atlas/T2_atlas_SynMI0.00005_Warped.nii.gz,T2template_to_atlas/T2_atlas_SynMI0.00005_InverseWarped.nii.gz] -v 1
+
+
+#Register FA_template to T2 template:
+antsRegistration -d 3 -r [ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_FA/FA_template.nii.gz,1] -m MI[ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_FA/FA_template.nii.gz,1,32] -t Rigid[0.1] -c 10000x10000x10000x10000x10000 -s 8x6x4x2x0mm -f 5x4x3x2x1 -l 1 -r [ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_FA/FA_template.nii.gz,1] -m MI[ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_FA/FA_template.nii.gz,1,32] -t Affine[0.1] -c 10000x10000x10000x10000x10000 -s 8x6x4x2x0mm -f 5x4x3x2x1 -l 1 -r [ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_FA/FA_template.nii.gz,1] -m MI[ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_FA/FA_template.nii.gz,1,32] -t SyN[0.005] -c 100x70x20 -f 3x2x1 -s 4x2x0mm -u true -l 1 -o [FAtemplate_to_T2template/FA_T2_SynMI0.005_transform,FAtemplate_to_T2template/FA_T2_SynMI0.005_Warped.nii.gz,FAtemplate_to_T2template/FA_T2_SynMI0.005_InverseWarped.nii.gz] -v 1
+
+
+#Register MT template to T2 template:
+antsRegistration -d 3 -r [ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_MT/MT_template.nii.gz,1] -m MI[ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_MT/MT_template.nii.gz,1,32] -t Rigid[0.1] -c 10000x10000x10000x10000x10000 -s 8x6x4x2x0mm -f 5x4x3x2x1 -l 1 -r [ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_MT/MT_template.nii.gz,1] -m MI[ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_MT/MT_template.nii.gz,1,32] -t Affine[0.1] -c 10000x10000x10000x10000x10000 -s 8x6x4x2x0mm -f 5x4x3x2x1 -l 1 -r [ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_MT/MT_template.nii.gz,1] -m CC[ANTStemplate_T2/T2_template.nii.gz,ANTStemplate_MT/MT_template.nii.gz,1,4] -t SyN[0.005] -c 100x70x20 -f 3x2x1 -s 4x2x0mm -u true -l 1 -o [MTtemplate_to_T2template/MT_T2_SynCI0.005_transform,MTtemplate_to_T2template/MT_T2_SynCI0.005_Warped.nii.gz,MTtemplate_to_T2template/MT_T2_SynCI0.005_InverseWarped.nii.gz] -v 1
