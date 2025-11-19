@@ -36,6 +36,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.last_browse_dir = self._load_last_dir()
         self.fixed_root: Path | None = Path(self.presets.get("default_project_root")) if self.presets.get("default_project_root") else None
         self.subject_folder_path: Path | None = None
+        self._compare_orient_options = [("Axial", 2), ("Coronal", 1), ("Sagittal", 0)]
+        self._compare_right_orient_offset = 0  # 0 = same as left, 1/2 cycle right view
         self._compare_data_left = None
         self._compare_data_right = None
         self._left_rot = 0
@@ -529,11 +531,17 @@ class MainWindow(QtWidgets.QMainWindow):
         orient_layout = QtWidgets.QHBoxLayout()
         orient_layout.addWidget(QtWidgets.QLabel("View"))
         self.compare_orient = QtWidgets.QComboBox()
-        self.compare_orient.addItem("Axial", 2)
-        self.compare_orient.addItem("Coronal", 1)
-        self.compare_orient.addItem("Sagittal", 0)
+        for text, axis in self._compare_orient_options:
+            self.compare_orient.addItem(text, axis)
+        self.compare_right_orient_label = QtWidgets.QLabel()
+        btn_cycle_right_view = QtWidgets.QPushButton("Cycle right view")
+        btn_cycle_right_view.setToolTip("切换右侧的三视角，左侧保持当前选择。")
+        btn_cycle_right_view.clicked.connect(self._cycle_right_orient)
         self.compare_orient.currentIndexChanged.connect(self._update_compare_slider_range)
         orient_layout.addWidget(self.compare_orient)
+        orient_layout.addStretch(1)
+        orient_layout.addWidget(self.compare_right_orient_label)
+        orient_layout.addWidget(btn_cycle_right_view)
         layout.addLayout(orient_layout)
 
         self.compare_info = QtWidgets.QLabel("Slice: -")
@@ -672,6 +680,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.compare_overlay.stateChanged.connect(self._update_compare_view)
         self.compare_scheme.currentIndexChanged.connect(self._update_compare_view)
 
+        self._refresh_right_orient_label()
         layout.addStretch(1)
         return widget
 
@@ -990,14 +999,15 @@ class MainWindow(QtWidgets.QMainWindow):
         out_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save video", str(self.repo_root / "compare.mp4"), "MP4 files (*.mp4)")
         if not out_path:
             return
-        axis = self.compare_orient.currentData()
+        axis_left = self.compare_orient.currentData()
+        axis_right = self._right_orient_axis()
         if not hasattr(self, "_compare_data_left") and not hasattr(self, "_compare_data_right"):
             self._warn("没有数据。")
             return
 
         # compute aligned coordinate grid
-        step_left = self._slice_step(self._compare_data_left, axis, self.compare_left.text())
-        step_right = self._slice_step(self._compare_data_right, axis, self.compare_right.text())
+        step_left = self._slice_step(self._compare_data_left, axis_left, self.compare_left.text())
+        step_right = self._slice_step(self._compare_data_right, axis_right, self.compare_right.text())
         if self.compare_step_left.value() > 0:
             step_left = self.compare_step_left.value()
         if self.compare_step_right.value() > 0:
@@ -1009,9 +1019,9 @@ class MainWindow(QtWidgets.QMainWindow):
         coords_left = None
         coords_right = None
         if self._compare_data_left is not None:
-            coords_left = (np.arange(self._compare_data_left.shape[axis]) - idx_left_anchor) * step_left
+            coords_left = (np.arange(self._compare_data_left.shape[axis_left]) - idx_left_anchor) * step_left
         if self._compare_data_right is not None:
-            coords_right = (np.arange(self._compare_data_right.shape[axis]) - idx_right_anchor) * step_right
+            coords_right = (np.arange(self._compare_data_right.shape[axis_right]) - idx_right_anchor) * step_right
 
         # align anchor coordinate at 0 with optional shift if both exist
         delta = 0.0
@@ -1043,12 +1053,12 @@ class MainWindow(QtWidgets.QMainWindow):
             right_slice = None
             if coords_left is not None:
                 idx = int(round(c / step_left)) + idx_left_anchor
-                if 0 <= idx < self._compare_data_left.shape[axis]:
-                    left_slice = self._apply_transforms(self._extract_slice(self._compare_data_left, axis, idx), "left")
+                if 0 <= idx < self._compare_data_left.shape[axis_left]:
+                    left_slice = self._apply_transforms(self._extract_slice(self._compare_data_left, axis_left, idx), "left")
             if coords_right is not None:
                 idx = int(round((c + delta) / step_right)) + idx_right_anchor
-                if 0 <= idx < self._compare_data_right.shape[axis]:
-                    right_slice = self._apply_transforms(self._extract_slice(self._compare_data_right, axis, idx), "right")
+                if 0 <= idx < self._compare_data_right.shape[axis_right]:
+                    right_slice = self._apply_transforms(self._extract_slice(self._compare_data_right, axis_right, idx), "right")
             left_img, right_img = self._render_compare_frame_from_slices(left_slice, right_slice)
             if left_img is None and right_img is None:
                 continue
@@ -1439,23 +1449,53 @@ class MainWindow(QtWidgets.QMainWindow):
             event.ignore()
 
     # ---- compare view helpers ----
+    def _right_orient_axis(self) -> int:
+        if self.compare_orient.count() == 0:
+            return 2
+        base_idx = max(0, self.compare_orient.currentIndex())
+        right_idx = (base_idx + self._compare_right_orient_offset) % self.compare_orient.count()
+        axis = self.compare_orient.itemData(right_idx)
+        return axis if axis is not None else 2
+
+    def _right_orient_text(self) -> str:
+        if self.compare_orient.count() == 0:
+            return ""
+        base_idx = max(0, self.compare_orient.currentIndex())
+        right_idx = (base_idx + self._compare_right_orient_offset) % self.compare_orient.count()
+        return self.compare_orient.itemText(right_idx)
+
+    def _refresh_right_orient_label(self) -> None:
+        text = self._right_orient_text()
+        self.compare_right_orient_label.setText(f"Right view: {text}" if text else "Right view")
+
+    def _cycle_right_orient(self) -> None:
+        if self.compare_orient.count() == 0:
+            return
+        self._compare_right_orient_offset = (self._compare_right_orient_offset + 1) % self.compare_orient.count()
+        self._refresh_right_orient_label()
+        self._update_compare_slider_range()
+        self._update_compare_view()
+
     def _update_compare_slider_range(self) -> None:
-        axis = self.compare_orient.currentData()
+        axis_left = self.compare_orient.currentData()
+        axis_right = self._right_orient_axis()
         max_left = 0
         max_right = 0
         if hasattr(self, "_compare_data_left") and self._compare_data_left is not None:
-            max_left = max(0, self._compare_data_left.shape[axis] - 1)
+            max_left = max(0, self._compare_data_left.shape[axis_left] - 1)
         if hasattr(self, "_compare_data_right") and self._compare_data_right is not None:
-            max_right = max(0, self._compare_data_right.shape[axis] - 1)
+            max_right = max(0, self._compare_data_right.shape[axis_right] - 1)
         self.compare_slider_left.setMaximum(max_left)
         self.compare_slider_left.setValue(min(self.compare_slider_left.value(), max_left))
         self.compare_slider_right.setMaximum(max_right)
         self.compare_slider_right.setValue(min(self.compare_slider_right.value(), max_right))
+        self._refresh_right_orient_label()
 
     def _update_compare_view(self) -> None:
         if not hasattr(self, "_compare_data_left") and not hasattr(self, "_compare_data_right"):
             return
-        axis = self.compare_orient.currentData()
+        axis_left = self.compare_orient.currentData()
+        axis_right = self._right_orient_axis()
         idx_left = self.compare_slider_left.value()
         idx_right = self.compare_slider_right.value()
 
@@ -1464,9 +1504,9 @@ class MainWindow(QtWidgets.QMainWindow):
         left_slice = None
         right_slice = None
         if hasattr(self, "_compare_data_left") and self._compare_data_left is not None:
-            left_slice = self._apply_transforms(self._extract_slice(self._compare_data_left, axis, idx_left), "left")
+            left_slice = self._apply_transforms(self._extract_slice(self._compare_data_left, axis_left, idx_left), "left")
         if hasattr(self, "_compare_data_right") and self._compare_data_right is not None:
-            right_slice = self._apply_transforms(self._extract_slice(self._compare_data_right, axis, idx_right), "right")
+            right_slice = self._apply_transforms(self._extract_slice(self._compare_data_right, axis_right, idx_right), "right")
 
         def _norm_bounds(vmin_val: float, vmax_val: float) -> tuple[float, float]:
             if vmax_val <= vmin_val:
@@ -1476,7 +1516,14 @@ class MainWindow(QtWidgets.QMainWindow):
         vmin_left, vmax_left = _norm_bounds(self.compare_min_left.value(), self.compare_max_left.value())
         vmin_right, vmax_right = _norm_bounds(self.compare_min_right.value(), self.compare_max_right.value())
 
-        if left_slice is not None and right_slice is not None and self.compare_overlay.isChecked():
+        overlay_ok = (
+            left_slice is not None
+            and right_slice is not None
+            and self.compare_overlay.isChecked()
+            and left_slice.shape == right_slice.shape
+        )
+
+        if overlay_ok:
             overlay, scale_val = self._build_overlay(
                 left_slice, right_slice, vmin=vmin_left, vmax=vmax_left, pos_color=pos_color, neg_color=neg_color
             )
@@ -1499,17 +1546,30 @@ class MainWindow(QtWidgets.QMainWindow):
             self.viewer_left.set_slice(right_slice, vmin=vmin_right, vmax=vmax_right)
             self.viewer_right.hide()
             self.diff_scale.hide()
-        self.compare_info.setText(f"{self.compare_orient.currentText()} L:{idx_left} R:{idx_right}")
+        self.compare_info.setText(
+            f"L:{idx_left} {self.compare_orient.currentText()} | R:{idx_right} {self._right_orient_text()}"
+        )
 
-    def _render_compare_frame(self, axis: int, idx_left: int, idx_right: int) -> tuple[np.ndarray | None, np.ndarray | None]:
+    def _render_compare_frame(
+        self, axis_left: int, idx_left: int, idx_right: int, axis_right: int | None = None
+    ) -> tuple[np.ndarray | None, np.ndarray | None]:
         pos_color, neg_color = self.compare_scheme.currentData() or ((255, 0, 0), (0, 0, 255))
+        axis_right = axis_left if axis_right is None else axis_right
 
         left_slice = None
         right_slice = None
-        if hasattr(self, "_compare_data_left") and self._compare_data_left is not None and idx_left < self._compare_data_left.shape[axis]:
-            left_slice = self._apply_transforms(self._extract_slice(self._compare_data_left, axis, idx_left), "left")
-        if hasattr(self, "_compare_data_right") and self._compare_data_right is not None and idx_right < self._compare_data_right.shape[axis]:
-            right_slice = self._apply_transforms(self._extract_slice(self._compare_data_right, axis, idx_right), "right")
+        if (
+            hasattr(self, "_compare_data_left")
+            and self._compare_data_left is not None
+            and idx_left < self._compare_data_left.shape[axis_left]
+        ):
+            left_slice = self._apply_transforms(self._extract_slice(self._compare_data_left, axis_left, idx_left), "left")
+        if (
+            hasattr(self, "_compare_data_right")
+            and self._compare_data_right is not None
+            and idx_right < self._compare_data_right.shape[axis_right]
+        ):
+            right_slice = self._apply_transforms(self._extract_slice(self._compare_data_right, axis_right, idx_right), "right")
 
         def _norm_bounds(vmin_val: float, vmax_val: float) -> tuple[float, float]:
             if vmax_val <= vmin_val:
@@ -1524,7 +1584,14 @@ class MainWindow(QtWidgets.QMainWindow):
             img = np.ascontiguousarray((norm * 255).astype(np.uint8))
             return np.repeat(img[:, :, None], 3, axis=2)
 
-        if left_slice is not None and right_slice is not None and self.compare_overlay.isChecked():
+        overlay_ok = (
+            left_slice is not None
+            and right_slice is not None
+            and self.compare_overlay.isChecked()
+            and left_slice.shape == right_slice.shape
+        )
+
+        if overlay_ok:
             overlay, _ = self._build_overlay(
                 left_slice, right_slice, vmin=vmin_left, vmax=vmax_left, pos_color=pos_color, neg_color=neg_color
             )
@@ -1551,7 +1618,14 @@ class MainWindow(QtWidgets.QMainWindow):
             norm = np.clip((arr - vmin_val) / (vmax_val - vmin_val), 0, 1)
             img = np.ascontiguousarray((norm * 255).astype(np.uint8))
             return np.repeat(img[:, :, None], 3, axis=2)
-        if left_slice is not None and right_slice is not None and self.compare_overlay.isChecked():
+
+        overlay_ok = (
+            left_slice is not None
+            and right_slice is not None
+            and self.compare_overlay.isChecked()
+            and left_slice.shape == right_slice.shape
+        )
+        if overlay_ok:
             overlay, _ = self._build_overlay(
                 left_slice, right_slice, vmin=vmin_left, vmax=vmax_left, pos_color=pos_color, neg_color=neg_color
             )

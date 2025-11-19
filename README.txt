@@ -15,12 +15,6 @@ Folders with code:
 			3. TOPUP (from FSL) is applied to acquire reverse-blip susceptibility correction
 			4. EDDY (from FSL) is run to apply the results from TOPUP and 
 
-Install UI deps (Python 3.10+):
-```
-pip install -r requirements.txt
-python3 -m ui_app
-```
-
 ******************************************************************************************************************************************************************************************
 
 Example Snakemake Usage to process dicoms all the way to scalar maps
@@ -56,5 +50,6 @@ The above command will generate scalar maps as well as a non-diffusion weighted 
 ******************************************************************************************************************************************************************************************
 
 UI (experimental)
-- Requires Python 3 and PySide6 (`pip install pyside6`).
-- Start: `python -m ui_app` (from repo root) to open a step-by-step GUI that wraps the MT pipeline commands.
+- Requires Python 3.10+.
+- Install: `python -m venv .venv && source .venv/bin/activate` (or `.venv\\Scripts\\activate` on Windows) then `pip install -r requirements.txt`.
+- Start: `python -m ui_app` (from repo root) to open the MT pipeline GUI. See `ui_app/README.md` for step-by-step details and presets.
