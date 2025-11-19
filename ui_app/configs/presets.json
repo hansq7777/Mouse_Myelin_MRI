@@ -1,0 +1,14 @@
+{
+  "default_project_root": "C:/work/mouse_mt_pipeline/Data",
+  "matlab": {
+    "path_setup": "cd('C:/work/mouse_mt_pipeline/mt_pipeline/matlab'); addMatlabPath;"
+  },
+  "brainsuite": {
+    "exe": "C:/Program Files/BrainSuite23a/BrainSuite.exe"
+  },
+  "dcm2niix": {
+    "exe": "C:/tools/dcm2niix/dcm2niix.exe",
+    "default_args": ["-z", "y"]
+  },
+  "python_launcher": ""
+}

@@ -4,16 +4,22 @@ All code can be run by using the "rules" in the Snakefile. Scripts can also be r
 
 Folders with code:
 
--dcm2nii: code to convert enhanced DICOMs to NIFTIs
+-mt_pipeline: MT workflow utilities (split_mt_dicom, enhanced DICOM→NIfTI helper, MATLAB tools for recenter/orient/B1/MTsat)
+-ui_app: PySide6 UI scaffold (run with `python3 -m ui_app`)
 -niiCombDiffAve: code to combine averages of diffusion MRI datasets (if they were collected separately on the scanner)
 		This includes frequency drift correction and denoising, and for complex data partial Fourier recon and (optionally) refinement of the Nyquist N/2 ghost correction
 -dMRIpreproc: code to preprocess diffusion MRI datasets
-		Preprocessing steps include (in order):
-		1. Denoising with mrtrix3 (this is turned off by default since complex denoising is done in niiCombDiffAve.mat, but it can be tunred on if needed)
-		2. Gibbs ringing correction (with mrtrix3)
-		3. TOPUP (from FSL) is applied to acquire reverse-blip susceptibility correction
-		4. EDDY (from FSL) is run to apply the results from TOPUP and 
--scalarMapGen: code to output diffusion MRI and MT scalar maps
+			Preprocessing steps include (in order):
+			1. Denoising with mrtrix3 (this is turned off by default since complex denoising is done in niiCombDiffAve.mat, but it can be tunred on if needed)
+			2. Gibbs ringing correction (with mrtrix3)
+			3. TOPUP (from FSL) is applied to acquire reverse-blip susceptibility correction
+			4. EDDY (from FSL) is run to apply the results from TOPUP and 
+
+Install UI deps (Python 3.10+):
+```
+pip install -r requirements.txt
+python3 -m ui_app
+```
 
 ******************************************************************************************************************************************************************************************
 
@@ -48,3 +54,7 @@ $ snakemake --cores 1 filepath/{mouse#1_sex /timepoint,mouse#2_sex /timepoint,mo
 The above command will generate scalar maps as well as a non-diffusion weighted (b0) NIFTI, averaged over all non-diffusion weighted volumes. This mean b0 NIFTI may be used to facilitate registration.
 
 ******************************************************************************************************************************************************************************************
+
+UI (experimental)
+- Requires Python 3 and PySide6 (`pip install pyside6`).
+- Start: `python -m ui_app` (from repo root) to open a step-by-step GUI that wraps the MT pipeline commands.
