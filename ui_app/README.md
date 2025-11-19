@@ -33,3 +33,12 @@ The UI reads defaults from `ui_app/configs/presets.json` (MATLAB path setup, dcm
 - MT metrics: MATLAB `nii2mtsat`.
 - T1/T2w/r: MATLAB `nii2t1wt2wr`.
 - Compare: quick side-by-side NIfTI slice viewer.
+
+## External tools (not bundled in repo)
+
+- MATLAB (command-line `matlab` available) and SPM for coregistration (`coreg_est_write_weighted`), add SPM to MATLAB path (e.g., `addpath('C:/tools/spm')`).
+- dcm2niix binary for DICOM → NIfTI (set path in `ui_app/configs/presets.json` or install to PATH).
+- MRtrix3 (`mrdegibbs`) for Gibbs ringing correction.
+- BrainSuite23a for manual brain mask creation (set `brainsuite.exe` in presets).
+- Optional dMRI steps require FSL (TOPUP/EDDY) if you run the diffusion pipeline; not used by the MT-only UI steps.
+- Large imaging datasets and masks under `Data/` are not versioned to GitHub; sync from your storage/share as needed.
