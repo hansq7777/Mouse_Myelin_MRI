@@ -217,13 +217,13 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("MT combined DICOM", self._hbox(self.split_src, btn_src))
 
         self.split_off = QtWidgets.QLineEdit()
-        self.split_off.setPlaceholderText("留空：自动在主体目录生成 MToff/mtoff.dcm")
+        self.split_off.setPlaceholderText("Leave empty: auto-create MToff/mtoff.dcm under subject folder")
         btn_off = QtWidgets.QPushButton("MToff folder")
         btn_off.clicked.connect(self._pick_split_off_folder)
         form.addRow("MToff output", self._hbox(self.split_off, btn_off))
 
         self.split_on = QtWidgets.QLineEdit()
-        self.split_on.setPlaceholderText("留空：自动在主体目录生成 MTon/mton.dcm")
+        self.split_on.setPlaceholderText("Leave empty: auto-create MTon/mton.dcm under subject folder")
         btn_on = QtWidgets.QPushButton("MTon folder")
         btn_on.clicked.connect(self._pick_split_on_folder)
         form.addRow("MTon output", self._hbox(self.split_on, btn_on))
@@ -274,7 +274,7 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("Input NIfTI", self._hbox(self.recenter_input, btn_in))
 
         self.recenter_output = QtWidgets.QLineEdit()
-        self.recenter_output.setPlaceholderText("留空：自动在同目录生成 *_recenter.nii.gz")
+        self.recenter_output.setPlaceholderText("Leave empty: auto-create *_recenter.nii.gz in the same folder")
         btn_out = QtWidgets.QPushButton("Save recentered")
         btn_out.clicked.connect(lambda: self._set_line_from_save(self.recenter_output))
         form.addRow("Output", self._hbox(self.recenter_output, btn_out))
@@ -312,7 +312,7 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("Input (.nii/.nii.gz)", self._hbox(self.gibbs_input, btn_in))
 
         self.gibbs_outdir = QtWidgets.QLineEdit()
-        self.gibbs_outdir.setPlaceholderText("留空：使用输入所在目录")
+        self.gibbs_outdir.setPlaceholderText("Leave empty: use the input directory")
         btn_out = QtWidgets.QPushButton("Pick output folder")
         btn_out.clicked.connect(lambda: self._set_line_from_folder(self.gibbs_outdir))
         form.addRow("Output folder", self._hbox(self.gibbs_outdir, btn_out))
@@ -346,7 +346,7 @@ class MainWindow(QtWidgets.QMainWindow):
         btn_guess.clicked.connect(self._guess_gibbs_axes)
         form.addRow(btn_guess)
 
-        note = QtWidgets.QLabel("MRtrix3 mrdegibbs，对称满采样假设；轴序以 NIfTI 存储顺序为准。")
+        note = QtWidgets.QLabel("MRtrix3 mrdegibbs assumes symmetric fully-sampled data; axes follow NIfTI storage order.")
         note.setWordWrap(True)
         form.addRow(note)
 
@@ -389,10 +389,10 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("Weight/mask", self._hbox(self.coreg_mask, btn_mask))
 
         self.coreg_prefix = QtWidgets.QLineEdit()
-        self.coreg_prefix.setPlaceholderText("留空 + 勾选覆盖原文件；否则请输入前缀")
+        self.coreg_prefix.setPlaceholderText("Leave empty + check overwrite to replace source; otherwise enter a prefix")
         form.addRow("Prefix", self.coreg_prefix)
 
-        self.coreg_overwrite = QtWidgets.QCheckBox("覆盖源文件（无前缀）")
+        self.coreg_overwrite = QtWidgets.QCheckBox("Overwrite source (no prefix)")
         form.addRow(self.coreg_overwrite)
 
         # Strategy menu (only controls interpolation)
@@ -535,7 +535,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.compare_orient.addItem(text, axis)
         self.compare_right_orient_label = QtWidgets.QLabel()
         btn_cycle_right_view = QtWidgets.QPushButton("Cycle right view")
-        btn_cycle_right_view.setToolTip("切换右侧的三视角，左侧保持当前选择。")
+        btn_cycle_right_view.setToolTip("Cycle the right view; left view stays as selected.")
         btn_cycle_right_view.clicked.connect(self._cycle_right_orient)
         self.compare_orient.currentIndexChanged.connect(self._update_compare_slider_range)
         orient_layout.addWidget(self.compare_orient)
@@ -780,14 +780,14 @@ class MainWindow(QtWidgets.QMainWindow):
     def _run_gibbs(self) -> None:
         exe = self.gibbs_exec.text().strip() or "mrdegibbs"
         if not exe:
-            self._warn("请填写 mrdegibbs 可执行文件路径或名称。")
+            self._warn("Provide mrdegibbs executable path or name.")
             return
         if not self.gibbs_input.text():
-            self._warn("请选择输入 NIfTI。")
+            self._warn("Select input NIfTI.")
             return
         in_path = Path(self.gibbs_input.text())
         if not in_path.exists():
-            self._warn("输入文件不存在。")
+            self._warn("Input file does not exist.")
             return
         out_dir = Path(self.gibbs_outdir.text()) if self.gibbs_outdir.text() else in_path.parent
         suffix = self.gibbs_suffix.text().strip() or "_ungibbs"
@@ -800,11 +800,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.gibbs_outdir.setText(str(out_dir))
         # Prevent accidental overwrite
         if out_path.resolve() == in_path.resolve():
-            self._warn("输出路径与输入相同，请修改后缀或输出目录。")
+            self._warn("Output path matches input; change suffix or output folder.")
             return
         axes = self.gibbs_axes.text().strip()
         if not axes:
-            self._warn("请填写 axes（例如 0,1 或 1,2）。")
+            self._warn("Enter axes (e.g., 0,1 or 1,2).")
             return
         cmd: list[str]
         if self.gibbs_use_wsl.isChecked() and sys.platform.startswith("win"):
@@ -846,11 +846,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _guess_gibbs_axes(self) -> None:
         if not self.gibbs_input.text():
-            self._warn("请选择输入 NIfTI。")
+            self._warn("Select input NIfTI.")
             return
         nifti_path = Path(self.gibbs_input.text())
         if not nifti_path.exists():
-            self._warn("输入文件不存在。")
+            self._warn("Input file does not exist.")
             return
         shape = nib.load(str(nifti_path)).shape[:3]
         method_path = None
@@ -859,11 +859,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 method_path = cand
                 break
         if not method_path:
-            self._warn("未找到 method 文件（同级或上一级）。")
+            self._warn("method file not found (same or parent folder).")
             return
         method_dims = self._parse_bruker_matrix(method_path)
         if not method_dims:
-            self._warn("method 中未解析到 PVM_Matrix=3 元素。")
+            self._warn("No PVM_Matrix=3 entry parsed in method.")
             return
         # map method dims (read, phase1, phase2) to nifti axes by matching sizes
         nid_for_method = [-1] * len(method_dims)
@@ -875,13 +875,16 @@ class MainWindow(QtWidgets.QMainWindow):
                     used.add(m_axis)
                     break
         if any(idx == -1 for idx in nid_for_method[:2]):
-            self._warn(f"形状匹配失败：NIfTI {shape} vs method {method_dims}")
+            self._warn(f"Shape matching failed: NIfTI {shape} vs method {method_dims}")
             return
         read_axis = nid_for_method[0]
         phase1_axis = nid_for_method[1]
         axes = ",".join(str(x) for x in sorted({read_axis, phase1_axis}))
         self.gibbs_axes.setText(axes)
-        msg = f"推测 axes={axes}（read→轴{read_axis}, phase→轴{phase1_axis}，根据 PVM_Matrix {method_dims} 和 NIfTI 形状 {shape} 匹配）。"
+        msg = (
+            f"Guessed axes={axes} (read→axis{read_axis}, phase→axis{phase1_axis}, "
+            f"matched from PVM_Matrix {method_dims} and NIfTI shape {shape})."
+        )
         self.run_log.append(msg)
 
     def _run_brainsuite(self) -> None:
@@ -899,7 +902,7 @@ class MainWindow(QtWidgets.QMainWindow):
         prefix = self.coreg_prefix.text()
         overwrite = self.coreg_overwrite.isChecked()
         if not prefix and not overwrite:
-            self._warn("Prefix为空时请勾选覆盖源文件，或者填写一个前缀以生成新文件。")
+            self._warn("When prefix is empty, check overwrite or provide a prefix to create new files.")
             return
         code = self._matlab_batch(
             "coreg_est_write_weighted("
@@ -955,13 +958,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _load_and_compare(self) -> None:
         if not (self.compare_left.text() or self.compare_right.text()):
-            self._warn("至少选择一个 NIfTI 文件。")
+            self._warn("Select at least one NIfTI file.")
             return
         try:
             self._compare_data_left = nib.load(self.compare_left.text()).get_fdata() if self.compare_left.text() else None
             self._compare_data_right = nib.load(self.compare_right.text()).get_fdata() if self.compare_right.text() else None
         except Exception as exc:
-            self._warn(f"加载 NIfTI 失败: {exc}")
+            self._warn(f"Failed to load NIfTI: {exc}")
             return
         def _auto_range(arr: np.ndarray) -> tuple[float, float]:
             finite = arr[np.isfinite(arr)]
@@ -994,7 +997,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _export_compare_video(self) -> None:
         if not (hasattr(self, "_compare_data_left") or hasattr(self, "_compare_data_right")):
-            self._warn("请先加载至少一个卷。")
+            self._warn("Load at least one volume first.")
             return
         out_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save video", str(self.repo_root / "compare.mp4"), "MP4 files (*.mp4)")
         if not out_path:
@@ -1002,7 +1005,7 @@ class MainWindow(QtWidgets.QMainWindow):
         axis_left = self.compare_orient.currentData()
         axis_right = self._right_orient_axis()
         if not hasattr(self, "_compare_data_left") and not hasattr(self, "_compare_data_right"):
-            self._warn("没有数据。")
+            self._warn("No data.")
             return
 
         # compute aligned coordinate grid
@@ -1040,7 +1043,7 @@ class MainWindow(QtWidgets.QMainWindow):
             max_coord = max(max_coord, coords_right.max())
 
         if min_coord == max_coord:
-            self._warn("切片范围无效。")
+            self._warn("Slice range is invalid.")
             return
 
         nominal_step = min([s for s in [step_left, step_right] if s is not None])
@@ -1088,10 +1091,10 @@ class MainWindow(QtWidgets.QMainWindow):
             frames = norm_frames
 
         if not frames:
-            self._warn("没有可写的帧。")
+            self._warn("No frames to write.")
             return
 
-        fps = max(0.1, min(30.0, len(frames) / 300.0))  # ~5分钟播放，限定 0.1-30 fps
+        fps = max(0.1, min(30.0, len(frames) / 300.0))  # ~5 min playback, capped 0.1-30 fps
         try:
             try:
                 import imageio_ffmpeg  # type: ignore
@@ -1111,7 +1114,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     try:
                         imageio.plugins.ffmpeg.get_exe()
                     except Exception:
-                        raise RuntimeError("FFMPEG plugin missing，试试: pip install imageio-ffmpeg 或把 ffmpeg.exe 放到 C:\\tools")
+                        raise RuntimeError("FFMPEG plugin missing; try: pip install imageio-ffmpeg or place ffmpeg.exe at C:\\tools")
 
             if not out_path.lower().endswith(".mp4"):
                 out_path = out_path + ".mp4"
@@ -1120,7 +1123,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     writer.append_data(frame)
             self.run_log.append(f"Video saved: {out_path} (fps={fps:.2f}, frames={len(frames)})")
         except Exception as exc:
-            self._warn(f"导出视频失败: {exc}")
+            self._warn(f"Failed to export video: {exc}")
 
     # ---- helpers ----
     def _execute(self, cmd: list[str], step_key: str, done_message: str | None = None) -> None:
@@ -1306,7 +1309,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _run_b1prep(self) -> None:
         if not self.b1prep_b1.text() or not self.b1prep_mton.text():
-            self._warn("请设置原始 B1 和 MTon。")
+            self._warn("Set raw B1 and MTon.")
             return
         out_base = self.b1prep_out.text()
         if not out_base:
@@ -1431,8 +1434,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # type: ignore[override]
         msg = QtWidgets.QMessageBox(self)
         msg.setWindowTitle("Exit UI")
-        msg.setText("关闭 UI？")
-        checkbox = QtWidgets.QCheckBox("退出时关闭命令窗（跳过 pause）")
+        msg.setText("Close UI?")
+        checkbox = QtWidgets.QCheckBox("Close console on exit (skip pause)")
         msg.setCheckBox(checkbox)
         msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         msg.setDefaultButton(QtWidgets.QMessageBox.No)
