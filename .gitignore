@@ -4,3 +4,20 @@
 
 # snakemake working directory
 .snakemake*
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local raw / generated MRI data (do not version)
+Data/
+MTsat/
+SNR MAP/
+WHS12 template&atlas/
+third_party/
+
+# Local registration test outputs
+test/
+
+# Local VCS backups
+backups/

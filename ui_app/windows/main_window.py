@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 import shlex
@@ -173,7 +174,10 @@ class MainWindow(QtWidgets.QMainWindow):
             "b1prep": self._make_b1prep_form,
             "mtsat": self._make_mtsat_form,
             "t1t2": self._make_t1t2_form,
+            "snr": self._make_snr_form,
             "compare": self._make_compare_form,
+            "template_build": self._make_template_build_form,
+            "template_register": self._make_template_register_form,
         }
         for step in self.state.steps:
             builder = builders.get(step.key)
@@ -302,9 +306,26 @@ class MainWindow(QtWidgets.QMainWindow):
         widget = QtWidgets.QWidget()
         form = QtWidgets.QFormLayout(widget)
 
-        default_exec = self.presets.get("mrdegibbs", {}).get("exe", "deGibbs3D")
-        self.gibbs_exec = QtWidgets.QLineEdit(default_exec)
-        form.addRow("mrdegibbs exe", self.gibbs_exec)
+        gibbs_cfg = self.presets.get("mrdegibbs", {})
+        default_exec_3d = gibbs_cfg.get("exe_3d") or gibbs_cfg.get("exe", "deGibbs3D")
+        default_exec_2d = gibbs_cfg.get("exe_2d") or "mrdegibbs"
+
+        self.gibbs_mode = QtWidgets.QComboBox()
+        self.gibbs_mode.addItem("3D deGibbs3D (preview)", "3d")
+        self.gibbs_mode.addItem("2D MRtrix mrdegibbs", "2d")
+        self.gibbs_mode.currentIndexChanged.connect(self._update_gibbs_mode_ui)
+        form.addRow("Mode", self.gibbs_mode)
+
+        self.gibbs_exec_defaults = {"3d": default_exec_3d, "2d": default_exec_2d}
+        self.gibbs_exec_inputs: dict[str, QtWidgets.QLineEdit] = {}
+        self.gibbs_exec_stack = QtWidgets.QStackedWidget()
+        exec3d = QtWidgets.QLineEdit(default_exec_3d)
+        exec2d = QtWidgets.QLineEdit(default_exec_2d)
+        self.gibbs_exec_inputs["3d"] = exec3d
+        self.gibbs_exec_inputs["2d"] = exec2d
+        self.gibbs_exec_stack.addWidget(exec3d)
+        self.gibbs_exec_stack.addWidget(exec2d)
+        form.addRow("Executable", self.gibbs_exec_stack)
 
         self.gibbs_input = QtWidgets.QLineEdit()
         btn_in = QtWidgets.QPushButton("Pick input NIfTI")
@@ -320,40 +341,60 @@ class MainWindow(QtWidgets.QMainWindow):
         self.gibbs_suffix = QtWidgets.QLineEdit("_ungibbs")
         form.addRow("Filename suffix", self.gibbs_suffix)
 
-        self.gibbs_axes = QtWidgets.QLineEdit("0,1,2")
-        form.addRow("Axes (phase-encode dir first)", self.gibbs_axes)
+        self.gibbs_2d_group = QtWidgets.QGroupBox("2D-only parameters (MRtrix mrdegibbs)")
+        params_layout = QtWidgets.QFormLayout(self.gibbs_2d_group)
+
+        self.gibbs_axes = QtWidgets.QLineEdit("0,1")
+        params_layout.addRow("Axes (phase-encode dir first)", self.gibbs_axes)
 
         self.gibbs_nshifts = QtWidgets.QSpinBox()
         self.gibbs_nshifts.setRange(2, 200)
         self.gibbs_nshifts.setValue(20)
-        form.addRow("nshifts", self.gibbs_nshifts)
+        params_layout.addRow("nshifts", self.gibbs_nshifts)
 
         self.gibbs_minW = QtWidgets.QSpinBox()
         self.gibbs_minW.setRange(0, 20)
         self.gibbs_minW.setValue(1)
-        form.addRow("minW", self.gibbs_minW)
+        params_layout.addRow("minW", self.gibbs_minW)
 
         self.gibbs_maxW = QtWidgets.QSpinBox()
         self.gibbs_maxW.setRange(1, 30)
         self.gibbs_maxW.setValue(3)
-        form.addRow("maxW", self.gibbs_maxW)
+        params_layout.addRow("maxW", self.gibbs_maxW)
+
+        btn_guess = QtWidgets.QPushButton("Guess axes from method")
+        btn_guess.clicked.connect(self._guess_gibbs_axes)
+        params_layout.addRow(btn_guess)
+
+        note = QtWidgets.QLabel(
+            "MRtrix3 mrdegibbs assumes symmetric fully-sampled data; axes follow NIfTI storage order."
+        )
+        note.setWordWrap(True)
+        params_layout.addRow(note)
+
+        form.addRow(self.gibbs_2d_group)
 
         self.gibbs_use_wsl = QtWidgets.QCheckBox("Use WSL bridge (Windows→WSL)")
         self.gibbs_use_wsl.setChecked(sys.platform.startswith("win"))
         form.addRow(self.gibbs_use_wsl)
 
-        btn_guess = QtWidgets.QPushButton("Guess axes from method")
-        btn_guess.clicked.connect(self._guess_gibbs_axes)
-        form.addRow(btn_guess)
-
-        note = QtWidgets.QLabel("MRtrix3 mrdegibbs assumes symmetric fully-sampled data; axes follow NIfTI storage order.")
-        note.setWordWrap(True)
-        form.addRow(note)
-
-        run_btn = QtWidgets.QPushButton("Run mrdegibbs")
+        run_btn = QtWidgets.QPushButton("Run Gibbs correction")
         run_btn.clicked.connect(self._run_gibbs)
         form.addRow(run_btn)
+        self._update_gibbs_mode_ui()
         return widget
+
+    def _update_gibbs_mode_ui(self) -> None:
+        if not hasattr(self, "gibbs_mode"):
+            return
+        mode = self.gibbs_mode.currentData()
+        if hasattr(self, "gibbs_exec_stack"):
+            if mode == "3d":
+                self.gibbs_exec_stack.setCurrentWidget(self.gibbs_exec_inputs["3d"])
+            else:
+                self.gibbs_exec_stack.setCurrentWidget(self.gibbs_exec_inputs["2d"])
+        if hasattr(self, "gibbs_2d_group"):
+            self.gibbs_2d_group.setVisible(mode == "2d")
 
     def _make_brainsuite_form(self) -> QtWidgets.QWidget:
         widget = QtWidgets.QWidget()
@@ -503,6 +544,75 @@ class MainWindow(QtWidgets.QMainWindow):
 
         run_btn = QtWidgets.QPushButton("Run nii2t1wt2wr (MATLAB)")
         run_btn.clicked.connect(self._run_t1t2)
+        form.addRow(run_btn)
+        return widget
+
+    def _make_snr_form(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        form = QtWidgets.QFormLayout(widget)
+
+        self.snr_output_dir = QtWidgets.QLineEdit()
+        self.snr_output_dir.setPlaceholderText("Leave empty: auto-create under the first image folder")
+        btn_out = QtWidgets.QPushButton("Pick output folder")
+        btn_out.clicked.connect(lambda: self._set_line_from_folder(self.snr_output_dir))
+        form.addRow("Output folder", self._hbox(self.snr_output_dir, btn_out))
+
+        self.snr_run_id = QtWidgets.QLineEdit()
+        self.snr_run_id.setPlaceholderText("Optional; leave empty for auto run_id")
+        form.addRow("Run ID (optional)", self.snr_run_id)
+
+        self.snr_percentiles = QtWidgets.QLineEdit("20,30,40")
+        form.addRow("Percentiles", self.snr_percentiles)
+
+        self.snr_guard = QtWidgets.QSpinBox()
+        self.snr_guard.setRange(0, 100)
+        self.snr_guard.setValue(5)
+        form.addRow("Guard radius (vox)", self.snr_guard)
+
+        self.snr_margin = QtWidgets.QSpinBox()
+        self.snr_margin.setRange(0, 100)
+        self.snr_margin.setValue(2)
+        form.addRow("Margin (vox)", self.snr_margin)
+
+        self.snr_outlier_pct = QtWidgets.QDoubleSpinBox()
+        self.snr_outlier_pct.setRange(0.0, 100.0)
+        self.snr_outlier_pct.setDecimals(2)
+        self.snr_outlier_pct.setValue(99.0)
+        form.addRow("Outlier percentile", self.snr_outlier_pct)
+
+        self.snr_formula_version = QtWidgets.QLineEdit("paper_mt_snr_v1")
+        form.addRow("formula_version", self.snr_formula_version)
+
+        self.snr_noise_estimator = QtWidgets.QLineEdit("std_background_magnitude")
+        form.addRow("noise_estimator", self.snr_noise_estimator)
+
+        self.snr_default_mask = QtWidgets.QLineEdit()
+        self.snr_default_mask.setPlaceholderText("Optional shared ROI mask for all modalities")
+        btn_def_mask = QtWidgets.QPushButton("Pick default mask")
+        btn_def_mask.clicked.connect(lambda: self._set_line_from_file(self.snr_default_mask))
+        form.addRow("Default ROI mask", self._hbox(self.snr_default_mask, btn_def_mask))
+
+        def add_modality_rows(key: str, label: str) -> None:
+            img_line = QtWidgets.QLineEdit()
+            img_btn = QtWidgets.QPushButton("Pick image")
+            img_btn.clicked.connect(lambda: self._set_line_from_file(img_line))
+            setattr(self, f"snr_{key}_img", img_line)
+            form.addRow(f"{label} image", self._hbox(img_line, img_btn))
+
+            mask_line = QtWidgets.QLineEdit()
+            mask_line.setPlaceholderText("Optional modality-specific mask")
+            mask_btn = QtWidgets.QPushButton("Pick mask")
+            mask_btn.clicked.connect(lambda: self._set_line_from_file(mask_line))
+            setattr(self, f"snr_{key}_mask", mask_line)
+            form.addRow(f"{label} mask", self._hbox(mask_line, mask_btn))
+
+        add_modality_rows("mton", "MTon")
+        add_modality_rows("mtoff", "MToff/PDw")
+        add_modality_rows("t1", "T1")
+        add_modality_rows("t2", "T2")
+
+        run_btn = QtWidgets.QPushButton("Run SNR contract (paper-style)")
+        run_btn.clicked.connect(self._run_snr_contract)
         form.addRow(run_btn)
         return widget
 
@@ -684,6 +794,198 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addStretch(1)
         return widget
 
+    def _make_template_build_form(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        form = QtWidgets.QFormLayout(widget)
+
+        self.tpl_build_inputs = QtWidgets.QPlainTextEdit()
+        self.tpl_build_inputs.setPlaceholderText(
+            "Input NIfTI files, one per line (at least 2)\n"
+            "Example:\n"
+            "C:/work/mouse_mt_pipeline/Data/mouse4test6_20251113/MTon/MTon.nii.gz\n"
+            "C:/work/mouse_mt_pipeline/Data/mouse6test8_20251119/MTon/MTon.nii.gz"
+        )
+        btn_add_inputs = QtWidgets.QPushButton("Add files...")
+        btn_add_inputs.clicked.connect(lambda: self._append_files_to_plaintext(self.tpl_build_inputs))
+        form.addRow("Input images", self._hbox(self.tpl_build_inputs, btn_add_inputs))
+
+        self.tpl_build_outdir = QtWidgets.QLineEdit()
+        btn_outdir = QtWidgets.QPushButton("Pick output folder")
+        btn_outdir.clicked.connect(lambda: self._set_line_from_folder(self.tpl_build_outdir))
+        form.addRow("Output folder", self._hbox(self.tpl_build_outdir, btn_outdir))
+
+        self.tpl_build_name = QtWidgets.QLineEdit("group_template")
+        form.addRow("Template name", self.tpl_build_name)
+
+        self.tpl_build_from_space = QtWidgets.QLineEdit("subject_space")
+        form.addRow("From space", self.tpl_build_from_space)
+
+        self.tpl_build_to_space = QtWidgets.QLineEdit("group_template_space")
+        form.addRow("To space", self.tpl_build_to_space)
+
+        self.tpl_build_run_id = QtWidgets.QLineEdit()
+        self.tpl_build_run_id.setPlaceholderText("Optional (auto if empty)")
+        form.addRow("Run ID", self.tpl_build_run_id)
+
+        self.tpl_build_trace_dir = QtWidgets.QLineEdit()
+        btn_trace_dir = QtWidgets.QPushButton("Pick trace folder")
+        btn_trace_dir.clicked.connect(lambda: self._set_line_from_folder(self.tpl_build_trace_dir))
+        form.addRow("Trace folder", self._hbox(self.tpl_build_trace_dir, btn_trace_dir))
+
+        self.tpl_build_interp = QtWidgets.QComboBox()
+        self.tpl_build_interp.addItems(
+            [
+                "Linear",
+                "NearestNeighbor",
+                "BSpline",
+                "Gaussian",
+                "CosineWindowedSinc",
+                "WelchWindowedSinc",
+                "HammingWindowedSinc",
+                "LanczosWindowedSinc",
+                "MultiLabel",
+                "GenericLabel",
+            ]
+        )
+        self.tpl_build_interp.setCurrentText("Linear")
+        form.addRow("Interpolation", self.tpl_build_interp)
+
+        ants_default = self.presets.get("ants", {}).get("bin", "C:/tools/ANTs/ants-2.6.5/bin")
+        self.tpl_build_ants_bin = QtWidgets.QLineEdit(ants_default)
+        btn_ants_bin = QtWidgets.QPushButton("Pick ANTs bin")
+        btn_ants_bin.clicked.connect(lambda: self._set_line_from_folder(self.tpl_build_ants_bin))
+        form.addRow("ANTs bin", self._hbox(self.tpl_build_ants_bin, btn_ants_bin))
+
+        self.tpl_build_threads = QtWidgets.QSpinBox()
+        self.tpl_build_threads.setRange(1, 64)
+        self.tpl_build_threads.setValue(4)
+        form.addRow("Threads", self.tpl_build_threads)
+
+        run_btn = QtWidgets.QPushButton("Run template build")
+        run_btn.clicked.connect(self._run_template_build)
+        form.addRow(run_btn)
+        return widget
+
+    def _make_template_register_form(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        form = QtWidgets.QFormLayout(widget)
+
+        self.tpl_reg_fixed = QtWidgets.QLineEdit()
+        btn_fixed = QtWidgets.QPushButton("Pick fixed (template/atlas)")
+        btn_fixed.clicked.connect(lambda: self._set_line_from_file(self.tpl_reg_fixed))
+        form.addRow("Fixed image", self._hbox(self.tpl_reg_fixed, btn_fixed))
+
+        self.tpl_reg_moving = QtWidgets.QLineEdit()
+        btn_moving = QtWidgets.QPushButton("Pick moving template")
+        btn_moving.clicked.connect(lambda: self._set_line_from_file(self.tpl_reg_moving))
+        form.addRow("Moving image", self._hbox(self.tpl_reg_moving, btn_moving))
+
+        self.tpl_reg_outdir = QtWidgets.QLineEdit()
+        btn_outdir = QtWidgets.QPushButton("Pick output folder")
+        btn_outdir.clicked.connect(lambda: self._set_line_from_folder(self.tpl_reg_outdir))
+        form.addRow("Output folder", self._hbox(self.tpl_reg_outdir, btn_outdir))
+
+        self.tpl_reg_prefix = QtWidgets.QLineEdit("template_reg_")
+        form.addRow("Output prefix", self.tpl_reg_prefix)
+
+        self.tpl_reg_from_space = QtWidgets.QLineEdit("moving_template")
+        form.addRow("From space", self.tpl_reg_from_space)
+
+        self.tpl_reg_to_space = QtWidgets.QLineEdit("fixed_template")
+        form.addRow("To space", self.tpl_reg_to_space)
+
+        self.tpl_reg_edge_id = QtWidgets.QLineEdit()
+        self.tpl_reg_edge_id.setPlaceholderText("Optional (auto if empty)")
+        form.addRow("Edge ID", self.tpl_reg_edge_id)
+
+        self.tpl_reg_run_id = QtWidgets.QLineEdit()
+        self.tpl_reg_run_id.setPlaceholderText("Optional (auto if empty)")
+        form.addRow("Run ID", self.tpl_reg_run_id)
+
+        self.tpl_reg_trace_dir = QtWidgets.QLineEdit()
+        btn_trace_dir = QtWidgets.QPushButton("Pick trace folder")
+        btn_trace_dir.clicked.connect(lambda: self._set_line_from_folder(self.tpl_reg_trace_dir))
+        form.addRow("Trace folder", self._hbox(self.tpl_reg_trace_dir, btn_trace_dir))
+
+        self.tpl_reg_interp = QtWidgets.QComboBox()
+        self.tpl_reg_interp.addItems(
+            [
+                "Linear",
+                "NearestNeighbor",
+                "BSpline",
+                "Gaussian",
+                "CosineWindowedSinc",
+                "WelchWindowedSinc",
+                "HammingWindowedSinc",
+                "LanczosWindowedSinc",
+                "MultiLabel",
+                "GenericLabel",
+            ]
+        )
+        self.tpl_reg_interp.setCurrentText("Linear")
+        form.addRow("Interpolation", self.tpl_reg_interp)
+
+        self.tpl_reg_fixed_mask = QtWidgets.QLineEdit()
+        btn_fixed_mask = QtWidgets.QPushButton("Pick fixed mask (optional)")
+        btn_fixed_mask.clicked.connect(lambda: self._set_line_from_file(self.tpl_reg_fixed_mask))
+        form.addRow("Fixed mask", self._hbox(self.tpl_reg_fixed_mask, btn_fixed_mask))
+
+        self.tpl_reg_moving_mask = QtWidgets.QLineEdit()
+        btn_moving_mask = QtWidgets.QPushButton("Pick moving mask (optional)")
+        btn_moving_mask.clicked.connect(lambda: self._set_line_from_file(self.tpl_reg_moving_mask))
+        form.addRow("Moving mask", self._hbox(self.tpl_reg_moving_mask, btn_moving_mask))
+
+        self.tpl_reg_orient_qc_outdir = QtWidgets.QLineEdit()
+        self.tpl_reg_orient_qc_outdir.setPlaceholderText("Leave empty: <output-dir>/orientation_qc")
+        btn_orient_qc_outdir = QtWidgets.QPushButton("Pick QC output folder")
+        btn_orient_qc_outdir.clicked.connect(lambda: self._set_line_from_folder(self.tpl_reg_orient_qc_outdir))
+        form.addRow("Orientation QC dir", self._hbox(self.tpl_reg_orient_qc_outdir, btn_orient_qc_outdir))
+
+        btn_orient_qc = QtWidgets.QPushButton("Run moving orientation QC (8 candidates)")
+        btn_orient_qc.clicked.connect(self._run_orientation_qc_selector)
+        form.addRow(btn_orient_qc)
+
+        # Tuned defaults (locked baseline unless explicitly overridden)
+        self.tpl_reg_preprocess = QtWidgets.QComboBox()
+        self.tpl_reg_preprocess.addItems(["n4_locked"])
+        self.tpl_reg_preprocess.setCurrentText("n4_locked")
+        form.addRow("Preprocess mode", self.tpl_reg_preprocess)
+
+        self.tpl_reg_moving_denoise = QtWidgets.QComboBox()
+        self.tpl_reg_moving_denoise.addItems(["on", "off"])
+        self.tpl_reg_moving_denoise.setCurrentText("on")
+        form.addRow("Moving denoise", self.tpl_reg_moving_denoise)
+
+        self.tpl_reg_use_mask_opt = QtWidgets.QComboBox()
+        self.tpl_reg_use_mask_opt.addItems(["on"])
+        self.tpl_reg_use_mask_opt.setCurrentText("on")
+        form.addRow("Use mask in optimization", self.tpl_reg_use_mask_opt)
+
+        self.tpl_reg_init_strategy = QtWidgets.QComboBox()
+        self.tpl_reg_init_strategy.addItems(["com_only", "translation_then_rigid"])
+        self.tpl_reg_init_strategy.setCurrentText("com_only")
+        form.addRow("Init strategy", self.tpl_reg_init_strategy)
+
+        ants_default = self.presets.get("ants", {}).get("bin", "C:/tools/ANTs/ants-2.6.5/bin")
+        self.tpl_reg_ants_bin = QtWidgets.QLineEdit(ants_default)
+        btn_ants_bin = QtWidgets.QPushButton("Pick ANTs bin")
+        btn_ants_bin.clicked.connect(lambda: self._set_line_from_folder(self.tpl_reg_ants_bin))
+        form.addRow("ANTs bin", self._hbox(self.tpl_reg_ants_bin, btn_ants_bin))
+
+        self.tpl_reg_threads = QtWidgets.QSpinBox()
+        self.tpl_reg_threads.setRange(1, 64)
+        self.tpl_reg_threads.setValue(1)
+        form.addRow("Threads per seed", self.tpl_reg_threads)
+
+        self.tpl_reg_seed_list = QtWidgets.QLineEdit("42,17,73")
+        self.tpl_reg_seed_list.setPlaceholderText("e.g. 42,17,73")
+        form.addRow("Multi-start seeds", self.tpl_reg_seed_list)
+
+        run_btn = QtWidgets.QPushButton("Run template registration")
+        run_btn.clicked.connect(self._run_template_register)
+        form.addRow(run_btn)
+        return widget
+
     # ---- actions ----
     def _run_split(self) -> None:
         if not self.split_src.text():
@@ -778,9 +1080,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self._execute(cmd, "orient")
 
     def _run_gibbs(self) -> None:
-        exe = self.gibbs_exec.text().strip() or "mrdegibbs"
+        mode = self.gibbs_mode.currentData() if hasattr(self, "gibbs_mode") else "3d"
+        exec_field = self.gibbs_exec_inputs.get(mode) if hasattr(self, "gibbs_exec_inputs") else None
+        default_exec = self.gibbs_exec_defaults.get(mode) if hasattr(self, "gibbs_exec_defaults") else "mrdegibbs"
+        exe = (exec_field.text().strip() if exec_field else "") or default_exec
         if not exe:
-            self._warn("Provide mrdegibbs executable path or name.")
+            self._warn("Provide the executable path or name for the selected mode.")
             return
         if not self.gibbs_input.text():
             self._warn("Select input NIfTI.")
@@ -802,49 +1107,62 @@ class MainWindow(QtWidgets.QMainWindow):
         if out_path.resolve() == in_path.resolve():
             self._warn("Output path matches input; change suffix or output folder.")
             return
-        axes = self.gibbs_axes.text().strip()
-        if not axes:
+        axes = self.gibbs_axes.text().strip() if mode == "2d" else ""
+        if mode == "2d" and not axes:
             self._warn("Enter axes (e.g., 0,1 or 1,2).")
             return
         cmd: list[str]
         if self.gibbs_use_wsl.isChecked() and sys.platform.startswith("win"):
             exe_wsl = self._to_wsl_path(Path(exe)) if exe.startswith(("/", "\\", "C:", "D:", "E:", "F:")) else exe
-            parts = [
-                shlex.quote(exe_wsl),
-                "-axes",
-                axes,
-                "-nshifts",
-                str(self.gibbs_nshifts.value()),
-                "-minW",
-                str(self.gibbs_minW.value()),
-                "-maxW",
-                str(self.gibbs_maxW.value()),
-                shlex.quote(self._to_wsl_path(in_path)),
-                shlex.quote(self._to_wsl_path(Path(out_path))),
-            ]
+            parts: list[str] = [shlex.quote(exe_wsl)]
+            if mode == "2d":
+                parts.extend(
+                    [
+                        "-axes",
+                        axes,
+                        "-nshifts",
+                        str(self.gibbs_nshifts.value()),
+                        "-minW",
+                        str(self.gibbs_minW.value()),
+                        "-maxW",
+                        str(self.gibbs_maxW.value()),
+                    ]
+                )
+            parts.extend(
+                [
+                    shlex.quote(self._to_wsl_path(in_path)),
+                    shlex.quote(self._to_wsl_path(out_path)),
+                ]
+            )
             # Don't rely on ~/.bashrc (non-interactive shells may early-return).
             wsl_paths = self.presets.get("mrdegibbs", {}).get(
-                "wsl_path_prefix", "/mnt/c/work/mrtrix3/bin:/mnt/c/work/mrdegibbs3D/bin"
+                "wsl_path_prefix", "/mnt/c/work/mouse_mt_pipeline/third_party/mrtrix3/bin:/mnt/c/work/mouse_mt_pipeline/third_party/mrdegibbs3D/bin"
             )
             wsl_cmd = f'PATH="{wsl_paths}:$PATH"; ' + " ".join(parts)
             cmd = ["wsl", "bash", "-lc", wsl_cmd]
         else:
-            cmd = [
-                exe,
-                "-axes",
-                axes,
-                "-nshifts",
-                str(self.gibbs_nshifts.value()),
-                "-minW",
-                str(self.gibbs_minW.value()),
-                "-maxW",
-                str(self.gibbs_maxW.value()),
-                str(in_path),
-                out_path,
-            ]
+            if mode == "2d":
+                cmd = [
+                    exe,
+                    "-axes",
+                    axes,
+                    "-nshifts",
+                    str(self.gibbs_nshifts.value()),
+                    "-minW",
+                    str(self.gibbs_minW.value()),
+                    "-maxW",
+                    str(self.gibbs_maxW.value()),
+                    str(in_path),
+                    str(out_path),
+                ]
+            else:
+                cmd = [exe, str(in_path), str(out_path)]
         self._execute(cmd, "gibbs")
 
     def _guess_gibbs_axes(self) -> None:
+        if hasattr(self, "gibbs_mode") and self.gibbs_mode.currentData() != "2d":
+            self._warn("Axis guessing only applies to the 2D mrdegibbs mode.")
+            return
         if not self.gibbs_input.text():
             self._warn("Select input NIfTI.")
             return
@@ -904,14 +1222,16 @@ class MainWindow(QtWidgets.QMainWindow):
         if not prefix and not overwrite:
             self._warn("When prefix is empty, check overwrite or provide a prefix to create new files.")
             return
-        code = self._matlab_batch(
-            "coreg_est_write_weighted("
+        coreg_code = (
+            self._spm_setup_code()
+            + "coreg_est_write_weighted("
             f"'{self._matlab_str(self.coreg_src.text())}', "
             f"'{self._matlab_str(self.coreg_ref.text())}', "
             f"'{self._matlab_str(self.coreg_mask.text())}', "
             f"'{self._matlab_str(prefix)}', "
             f"{interp});"
         )
+        code = self._matlab_batch(coreg_code)
         cmd = ["matlab", "-batch", code]
         self._execute(cmd, "coreg")
 
@@ -955,6 +1275,231 @@ class MainWindow(QtWidgets.QMainWindow):
         cmd = ["matlab", "-batch", code]
         self._execute(cmd, "t1t2")
         self.mark_done("t1t2")
+
+    def _run_snr_contract(self) -> None:
+        modality_inputs = {
+            "mton": self.snr_mton_img.text().strip(),
+            "mtoff": self.snr_mtoff_img.text().strip(),
+            "t1": self.snr_t1_img.text().strip(),
+            "t2": self.snr_t2_img.text().strip(),
+        }
+        if not any(modality_inputs.values()):
+            self._warn("Set at least one MRI image (MTon/MToff/T1/T2).")
+            return
+
+        out_dir = self.snr_output_dir.text().strip()
+        if not out_dir:
+            first_img = next((Path(v) for v in modality_inputs.values() if v), None)
+            if first_img is None:
+                self._warn("Cannot infer output folder.")
+                return
+            out_dir = str(first_img.parent / f"snr_contract_{dt.datetime.now().strftime('%Y%m%d_%H%M%S')}")
+            self.snr_output_dir.setText(out_dir)
+
+        cmd = [
+            self.python_exe,
+            str(self.repo_root / "scripts" / "snr_contract.py"),
+            "--output-dir",
+            out_dir,
+            "--percentiles",
+            self.snr_percentiles.text().strip() or "20,30,40",
+            "--guard-radius-vox",
+            str(self.snr_guard.value()),
+            "--margin-vox",
+            str(self.snr_margin.value()),
+            "--outlier-percentile",
+            str(self.snr_outlier_pct.value()),
+            "--formula-version",
+            self.snr_formula_version.text().strip() or "paper_mt_snr_v1",
+            "--noise-estimator",
+            self.snr_noise_estimator.text().strip() or "std_background_magnitude",
+        ]
+
+        run_id = self.snr_run_id.text().strip()
+        if run_id:
+            cmd.extend(["--run-id", run_id])
+
+        default_mask = self.snr_default_mask.text().strip()
+        if default_mask:
+            cmd.extend(["--default-mask", default_mask])
+
+        def add_path(flag: str, value: str) -> None:
+            value = value.strip()
+            if value:
+                cmd.extend([flag, value])
+
+        add_path("--mton", modality_inputs["mton"])
+        add_path("--mtoff", modality_inputs["mtoff"])
+        add_path("--t1", modality_inputs["t1"])
+        add_path("--t2", modality_inputs["t2"])
+
+        add_path("--mton-mask", self.snr_mton_mask.text())
+        add_path("--mtoff-mask", self.snr_mtoff_mask.text())
+        add_path("--t1-mask", self.snr_t1_mask.text())
+        add_path("--t2-mask", self.snr_t2_mask.text())
+
+        self._execute(
+            cmd,
+            "snr",
+            done_message=(
+                f"SNR contract done: {out_dir}\n"
+                f"- background_stats.json\n"
+                f"- background_stats_nobright.json\n"
+                f"- background_stats_t1t2.json"
+            ),
+        )
+
+    def _run_template_build(self) -> None:
+        raw_lines = [line.strip() for line in self.tpl_build_inputs.toPlainText().splitlines()]
+        images = [line for line in raw_lines if line]
+        if len(images) < 2:
+            self._warn("Set at least 2 input images (one per line).")
+            return
+        if not self.tpl_build_outdir.text().strip():
+            self._warn("Set output folder.")
+            return
+        cmd = [
+            self.python_exe,
+            str(self.repo_root / "scripts" / "template_build.py"),
+            "--images",
+            *images,
+            "--output-dir",
+            self.tpl_build_outdir.text().strip(),
+            "--template-name",
+            self.tpl_build_name.text().strip() or "group_template",
+            "--from-space",
+            self.tpl_build_from_space.text().strip() or "subject_space",
+            "--to-space",
+            self.tpl_build_to_space.text().strip() or "group_template_space",
+            "--resample-interpolation",
+            self.tpl_build_interp.currentText() or "Linear",
+            "--ants-bin",
+            self.tpl_build_ants_bin.text().strip() or "C:/tools/ANTs/ants-2.6.5/bin",
+            "--threads",
+            str(self.tpl_build_threads.value()),
+        ]
+        if self.tpl_build_run_id.text().strip():
+            cmd.extend(["--run-id", self.tpl_build_run_id.text().strip()])
+        if self.tpl_build_trace_dir.text().strip():
+            cmd.extend(["--trace-dir", self.tpl_build_trace_dir.text().strip()])
+        self._execute(cmd, "template_build")
+
+    def _run_template_register(self) -> None:
+        if not self.tpl_reg_fixed.text().strip() or not self.tpl_reg_moving.text().strip():
+            self._warn("Set fixed and moving images.")
+            return
+        if not self.tpl_reg_outdir.text().strip():
+            self._warn("Set output folder.")
+            return
+        if not self.tpl_reg_fixed_mask.text().strip() or not self.tpl_reg_moving_mask.text().strip():
+            self._warn("Set both fixed and moving brain masks (required).")
+            return
+        cmd = [
+            self.python_exe,
+            str(self.repo_root / "scripts" / "template_register_multistart.py"),
+            "--fixed",
+            self.tpl_reg_fixed.text().strip(),
+            "--moving",
+            self.tpl_reg_moving.text().strip(),
+            "--output-dir",
+            self.tpl_reg_outdir.text().strip(),
+            "--prefix",
+            self.tpl_reg_prefix.text().strip() or "template_reg_",
+            "--from-space",
+            self.tpl_reg_from_space.text().strip() or "moving_template",
+            "--to-space",
+            self.tpl_reg_to_space.text().strip() or "fixed_template",
+            "--resample-interpolation",
+            self.tpl_reg_interp.currentText() or "Linear",
+            "--preprocess-mode",
+            self.tpl_reg_preprocess.currentText() or "n4_locked",
+            "--moving-denoise",
+            self.tpl_reg_moving_denoise.currentText() or "on",
+            "--use-mask-in-optimization",
+            self.tpl_reg_use_mask_opt.currentText() or "on",
+            "--init-strategy",
+            self.tpl_reg_init_strategy.currentText() or "com_only",
+            "--ants-bin",
+            self.tpl_reg_ants_bin.text().strip() or "C:/tools/ANTs/ants-2.6.5/bin",
+            "--threads",
+            str(self.tpl_reg_threads.value()),
+            "--seed-list",
+            self.tpl_reg_seed_list.text().strip() or "42,17,73",
+            "--fixed-mask",
+            self.tpl_reg_fixed_mask.text().strip(),
+            "--moving-mask",
+            self.tpl_reg_moving_mask.text().strip(),
+        ]
+        if self.tpl_reg_edge_id.text().strip():
+            cmd.extend(["--edge-id", self.tpl_reg_edge_id.text().strip()])
+        if self.tpl_reg_run_id.text().strip():
+            cmd.extend(["--run-id", self.tpl_reg_run_id.text().strip()])
+        if self.tpl_reg_trace_dir.text().strip():
+            cmd.extend(["--trace-dir", self.tpl_reg_trace_dir.text().strip()])
+        self._execute(cmd, "template_register")
+
+    def _run_orientation_qc_selector(self) -> None:
+        fixed = self.tpl_reg_fixed.text().strip()
+        moving = self.tpl_reg_moving.text().strip()
+        if not fixed or not moving:
+            self._warn("Set fixed and moving images first.")
+            return
+
+        base_out = self.tpl_reg_outdir.text().strip()
+        if self.tpl_reg_orient_qc_outdir.text().strip():
+            qc_out = self.tpl_reg_orient_qc_outdir.text().strip()
+        elif base_out:
+            qc_out = str(Path(base_out) / "orientation_qc")
+        else:
+            qc_out = str(Path(moving).parent / "orientation_qc")
+        self.tpl_reg_orient_qc_outdir.setText(qc_out)
+
+        cmd = [
+            self.python_exe,
+            str(self.repo_root / "scripts" / "orientation_qc_selector.py"),
+            "--fixed",
+            fixed,
+            "--moving",
+            moving,
+            "--output-dir",
+            qc_out,
+        ]
+        moving_mask = self.tpl_reg_moving_mask.text().strip()
+        if moving_mask:
+            cmd.extend(["--moving-mask", moving_mask])
+
+        self.run_log.append(f"$ {' '.join(cmd)}")
+        result = run_command(cmd, cwd=self.repo_root)
+        if result.stdout:
+            self.run_log.append(result.stdout.strip())
+        if result.stderr:
+            self.run_log.append(result.stderr.strip())
+        if not result.ok:
+            self.run_log.append(f"orientation_qc_selector failed with code {result.code}")
+            return
+
+        manifest_path = Path(qc_out) / "orientation_qc_manifest.json"
+        if not manifest_path.exists():
+            self.run_log.append("orientation_qc_selector finished, but manifest not found.")
+            return
+        try:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            self.run_log.append(f"Failed to parse orientation manifest: {exc}")
+            return
+
+        out_moving = payload.get("output_moving", "")
+        out_moving_mask = payload.get("output_moving_mask", "")
+        verified = bool(payload.get("verified", False))
+        selected = payload.get("selected_candidate", {})
+        if out_moving:
+            self.tpl_reg_moving.setText(out_moving)
+        if out_moving_mask:
+            self.tpl_reg_moving_mask.setText(out_moving_mask)
+        self.run_log.append(
+            f"Orientation QC applied (verified={verified}, candidate={selected}). "
+            f"Updated moving path(s) from {manifest_path}."
+        )
 
     def _load_and_compare(self) -> None:
         if not (self.compare_left.text() or self.compare_right.text()):
@@ -1163,6 +1708,25 @@ class MainWindow(QtWidgets.QMainWindow):
         if p:
             line.setText(str(p))
 
+    def _pick_files(self, start_dir: Path | None = None) -> list[Path]:
+        start = str(start_dir or self.last_browse_dir or Path.cwd())
+        files, _ = QtWidgets.QFileDialog.getOpenFileNames(self, "Select files", start)
+        paths: list[Path] = []
+        for file_path in files:
+            if file_path:
+                p = Path(file_path)
+                self._save_last_dir(p.parent)
+                paths.append(p)
+        return paths
+
+    def _append_files_to_plaintext(self, text_edit: QtWidgets.QPlainTextEdit) -> None:
+        paths = self._pick_files()
+        if not paths:
+            return
+        existing = [line.strip() for line in text_edit.toPlainText().splitlines() if line.strip()]
+        merged = existing + [str(p) for p in paths]
+        text_edit.setPlainText("\n".join(merged))
+
     def _set_line_from_save(self, line: QtWidgets.QLineEdit) -> None:
         p = self.pick_file(for_save=True)
         if p:
@@ -1193,6 +1757,20 @@ class MainWindow(QtWidgets.QMainWindow):
     @staticmethod
     def _matlab_str(path_str: str) -> str:
         return path_str.replace("'", "''")
+
+    def _spm_setup_code(self) -> str:
+        spm_cfg = self.presets.get("spm", {})
+        spm_path = spm_cfg.get("path", "").strip() if spm_cfg else ""
+        setup = ""
+        if spm_path:
+            setup += f"addpath('{self._matlab_str(spm_path)}'); "
+        setup += (
+            "if exist('spm','file')~=2 || exist('spm_jobman','file')~=2, "
+            "error('SPM not found; set spm.path in ui_app/configs/presets.json'); "
+            "end; "
+            "spm('defaults','fmri'); spm_jobman('initcfg'); "
+        )
+        return setup
 
     @staticmethod
     def _to_wsl_path(path: Path) -> str:
@@ -1403,6 +1981,16 @@ class MainWindow(QtWidgets.QMainWindow):
         set_if_empty(self.t1t2_t1, base / "T1" / "T1.nii.gz")
         set_if_empty(self.t1t2_t2, base / "RAREvfl" / "RAREvfl.nii.gz")
         set_if_empty(self.t1t2_mask, base / "RAREvfl" / "RAREvfl.mask.nii.gz")
+        # SNR contract defaults (paper-style)
+        set_if_empty(self.snr_mton_img, base / "MTon" / "MTon.nii.gz")
+        set_if_empty(self.snr_mtoff_img, base / "MToff_PDw" / "MToff_PDw.nii.gz")
+        set_if_empty(self.snr_t1_img, base / "MToff_T1" / "MToff_T1.nii.gz")
+        set_if_empty(self.snr_t2_img, base / "RAREvfl" / "RAREvfl.nii.gz")
+        set_if_empty(self.snr_mton_mask, base / "MTon" / "MTon_mask.nii.gz")
+        set_if_empty(self.snr_mtoff_mask, base / "MTon" / "MTon_mask.nii.gz")
+        set_if_empty(self.snr_t1_mask, base / "MTon" / "MTon_mask.nii.gz")
+        set_if_empty(self.snr_t2_mask, base / "MTon" / "MTon_mask.nii.gz")
+        self.snr_output_dir.setPlaceholderText(str(base / "SNR_MAP"))
         # Compare defaults: left as MTon, right as MToff_PDw
         set_if_empty(self.compare_left, base / "MTon" / "MTon.nii.gz")
         set_if_empty(self.compare_right, base / "MToff_PDw" / "MToff_PDw.nii.gz")

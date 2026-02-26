@@ -60,12 +60,23 @@ def default_steps() -> List[Step]:
         ),
         Step(
             name="Compute MTR / MTsat",
-            description="MATLAB: nii2mtsat with MTon, MToff_PDw, optional T1/B1, mask",
+            description=(
+                "MATLAB: nii2mtsat; MTR=(MToff-MTon)/MToff (clip 0-1), MTsat (Helms) with optional T1, "
+                "optional B1 correction, optional mask"
+            ),
             command="matlab -batch \"cd('C:/work/mouse_mt_pipeline/mt_pipeline/matlab'); addMatlabPath; nii2mtsat('<mton>','<mtoff>','<t1>','<mask>',1,'<b1>');\"",
         ),
         Step(
             name="Compute T1w/T2w/r",
             description="MATLAB: nii2t1wt2wr with mask, gaussian filter, intensity match",
             command="matlab -batch \"cd('C:/work/mouse_mt_pipeline/mt_pipeline/matlab'); addMatlabPath; nii2t1wt2wr('<t1>','<t2>','', '<mask>',1,1);\"",
+        ),
+        Step(
+            name="Compute SNR contract maps",
+            description=(
+                "Python: scripts/snr_contract.py; paper-style SNR = magnitude/std(background), "
+                "with unified JSON outputs (background_stats*.json) and per-map provenance fields."
+            ),
+            command='python scripts/snr_contract.py --output-dir "<out_dir>" --mton "<mton>" --mtoff "<mtoff>"',
         ),
     ]

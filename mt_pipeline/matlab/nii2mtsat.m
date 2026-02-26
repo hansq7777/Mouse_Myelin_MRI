@@ -1,8 +1,14 @@
-function [mtr, mtsat] = nii2mtsat(name_MTon, name_MToff, name_T1w, maskName, gaussianFilter, name_B1)
+function [mtr, mtsat, mtsat_raw] = nii2mtsat(name_MTon, name_MToff, name_T1w, maskName, gaussianFilter, name_B1)
 %Function to convert NIFTIs to MTR and MTsat maps (input filenames must not
 %include extensions such as .nii.gz,etc.)
 %name_MToff: reference PDw scan with MT pulse off
 %gaussianFilter = 0 or 1
+%Outputs:
+%  mtr       - clipped MTR map [0,1]
+%  mtsat     - clipped MTsat map [0, 0.1] (legacy default)
+%  mtsat_raw - unclipped MTsat map (for distribution/QC inspection)
+%Also saves an additional hard-clipped map [0, 1.0] for visualization:
+%  *_mtsat_clip1.nii.gz
 
 if nargin < 6
     name_B1 = [];
@@ -16,6 +22,8 @@ end
 if nargin < 3
     name_T1w = [];
 end
+
+mtsat_raw = [];
 
 name_MTon = char(name_MTon);
 name_MToff = char(name_MToff);
@@ -136,10 +144,8 @@ mtc = refPD - MTon;
 dofilt = 0;
 if ~isempty(name_T1w) 
     % Get flip angles and TR from json files
-    MTon_json = fileread([name_MTon, '.json']);
-    MTon_json = jsondecode(MTon_json);
-    T1_json = fileread([name_T1w, '.json']);
-    T1_json = jsondecode(T1_json);
+    MTon_json = load_json_sidecar(name_MTon);
+    T1_json = load_json_sidecar(name_T1w);
 
     RFlocal = [];                      %RFlocal - relative local flip angle compared to nominal flip angle
 
@@ -161,8 +167,7 @@ if ~isempty(name_T1w)
             end
         else
             % Derive RFlocal from raw B1 map
-            B1_json = fileread([name_B1, '.json']);
-            B1_json = jsondecode(B1_json);
+            B1_json = load_json_sidecar(name_B1);
             RFlocal = B1/B1_json.FlipAngle;
             
             %check which slices B1 correction can be applied to based on
@@ -190,12 +195,101 @@ if ~isempty(name_T1w)
     end
 end
 
+function sidecar = load_json_sidecar(name_stem)
+% Resolve JSON sidecar for a NIfTI stem with fallback rules.
+% Priority:
+%  1) <stem>.json
+%  2) strip common processing suffixes (e.g., _ungibbs) then try .json
+%  3) scan same folder for closest base-name match
+    if nargin < 1 || isempty(name_stem)
+        error('JSON sidecar resolution: empty input stem');
+    end
+
+    stem = char(name_stem);
+    direct = sprintf('%s.json', stem);
+    if exist(direct, 'file')
+        sidecar = jsondecode(fileread(direct));
+        return;
+    end
+
+    [folder, base, ~] = fileparts(stem);
+    suffixes = {'_ungibbs','_unring','_degibbs','_recenter','_raw','_clip1'};
+    base_try = base;
+    for i = 1:numel(suffixes)
+        suf = suffixes{i};
+        if length(base_try) > length(suf) && strcmpi(base_try(end-length(suf)+1:end), suf)
+            base_try = base_try(1:end-length(suf));
+            cand = fullfile(folder, sprintf('%s.json', base_try));
+            if exist(cand, 'file')
+                sidecar = jsondecode(fileread(cand));
+                return;
+            end
+        end
+    end
+
+    % folder-level fallback: choose best-matching JSON by base name.
+    listing = dir(fullfile(folder, '*.json'));
+    if isempty(listing)
+        error('Cannot find JSON sidecar for %s', stem);
+    end
+
+    best_idx = 0;
+    for i = 1:numel(listing)
+        [~, jb, ~] = fileparts(listing(i).name);
+        if strcmpi(jb, base_try) || strcmpi(jb, base)
+            best_idx = i;
+            break;
+        end
+        if startsWith(lower(base), lower(jb)) || startsWith(lower(jb), lower(base_try))
+            best_idx = i;
+        end
+    end
+    if best_idx == 0
+        if numel(listing) == 1
+            best_idx = 1;
+        else
+            error('Ambiguous JSON sidecars for %s. Please provide matching .json.', stem);
+        end
+    end
+    sidecar = jsondecode(fileread(fullfile(folder, listing(best_idx).name)));
+end
+
 % Make reasonable image bounds
 mtr(mtr<0) = 0;
 mtr(mtr>1) = 1;
 if ~isempty(name_T1w) 
+    % Keep an unclipped copy for QC/analysis.
+    mtsat_raw = mtsat;
+    % Remove non-finite and low-signal blow-up voxels from raw output.
+    % This keeps >0.1 distribution while suppressing background artifacts
+    % that can dominate auto-window display.
+    bad_raw = ~isfinite(mtsat_raw);
+    if isempty(maskName)
+        pd_pos = refPD(refPD > 0);
+        mt_pos = MTon(MTon > 0);
+        t1_pos = refT1(refT1 > 0);
+        if ~isempty(pd_pos) && ~isempty(mt_pos) && ~isempty(t1_pos)
+            sig_floor = max([ ...
+                1e-6, ...
+                0.02 * double(prctile(pd_pos, 99)), ...
+                0.02 * double(prctile(mt_pos, 99)), ...
+                0.02 * double(prctile(t1_pos, 99)) ...
+            ]);
+            low_sig = (refPD <= sig_floor) | (MTon <= sig_floor) | (refT1 <= sig_floor);
+            bad_raw = bad_raw | low_sig;
+        end
+    end
+    mtsat_raw(bad_raw) = 0;
+
+    % Legacy clip behavior for downstream compatibility.
+    mtsat = mtsat_raw;
     mtsat(mtsat<0) = 0;
-    mtsat(mtsat>0.1) = 0.1;
+    mtsat_clip01 = mtsat;
+    mtsat_clip01(mtsat_clip01>0.1) = 0.1;
+    mtsat_clip1 = mtsat;
+    mtsat_clip1(mtsat_clip1>1.0) = 1.0;
+    % keep function output as legacy 0.1-clipped map
+    mtsat = mtsat_clip01;
 end
 
 % Apply Mask 
@@ -207,6 +301,8 @@ if ~isempty(maskName)
     mtc = mtc.*imMask;
     if ~isempty(name_T1w)
         mtsat = mtsat.*imMask;
+        mtsat_raw = mtsat_raw.*imMask;
+        mtsat_clip1 = mtsat_clip1.*imMask;
     end
 end
 
@@ -225,6 +321,14 @@ cmd = sprintf('gzip -f "%s.nii"', name_mtr); [st, sysOut] = system(cmd); if st; 
 niftiwrite(single(mtc), name_mtc, im_info);
 cmd = sprintf('gzip -f "%s.nii"', name_mtc); [st, sysOut] = system(cmd); if st; error(sysOut); end
 if ~isempty(name_T1w) 
+    name_mtsat_raw = sprintf('%s_mtsat_raw',name_MTon);
+    niftiwrite(single(mtsat_raw), name_mtsat_raw, im_info);
+    cmd = sprintf('gzip -f "%s.nii"', name_mtsat_raw); [st, sysOut] = system(cmd); if st; error(sysOut); end
+
+    name_mtsat_clip1 = sprintf('%s_mtsat_clip1',name_MTon);
+    niftiwrite(single(mtsat_clip1), name_mtsat_clip1, im_info);
+    cmd = sprintf('gzip -f "%s.nii"', name_mtsat_clip1); [st, sysOut] = system(cmd); if st; error(sysOut); end
+
     name_mtsat = sprintf('%s_mtsat',name_MTon);
     niftiwrite(single(mtsat), name_mtsat, im_info);
     cmd = sprintf('gzip -f "%s.nii"', name_mtsat); [st, sysOut] = system(cmd); if st; error(sysOut); end

@@ -3,12 +3,18 @@
   "matlab": {
     "path_setup": "cd('C:/work/mouse_mt_pipeline/mt_pipeline/matlab'); addMatlabPath;"
   },
+  "spm": {
+    "path": "C:/tools/spm"
+  },
   "brainsuite": {
     "exe": "C:/Program Files/BrainSuite23a/BrainSuite.exe"
   },
   "dcm2niix": {
     "exe": "C:/tools/dcm2niix/dcm2niix.exe",
     "default_args": ["-z", "y"]
+  },
+  "ants": {
+    "bin": "C:/tools/ANTs/ants-2.6.5/bin"
   },
   "python_launcher": ""
 }

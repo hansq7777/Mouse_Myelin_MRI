@@ -38,9 +38,28 @@ class PipelineState:
             PipelineStep("brainsuite", "Step 4 – Brain extraction", "Launch BrainSuite23a to draw/save brain mask."),
             PipelineStep("coreg", "Step 5 – Coregistration", "SPM coreg_est_write_weighted with mask weighting."),
             PipelineStep("b1prep", "Step 6 – B1 preprocess", "Convert Bruker B1 map to RFlocal aligned to MTon."),
-            PipelineStep("mtsat", "Step 7 – MT metrics", "MATLAB nii2mtsat to generate MTR/MTsat (optional B1/mask)."),
+            PipelineStep(
+                "mtsat",
+                "Step 7 – MT metrics",
+                "MTR=(MToff-MTon)/MToff (clip 0-1); MTsat (Helms) from PDw+T1w with optional B1 correction and mask.",
+            ),
             PipelineStep("t1t2", "Step 8 – T1/T2w/r", "MATLAB nii2t1wt2wr to compute T1w/T2w/T1wT2w ratio."),
-            PipelineStep("compare", "Step 9 – Compare volumes", "Side-by-side slice viewer with synchronization."),
+            PipelineStep(
+                "snr",
+                "Step 9 – SNR contract maps",
+                "Paper-style SNR maps + unified JSON contract (background_stats*.json).",
+            ),
+            PipelineStep("compare", "Step 10 – Compare volumes", "Side-by-side slice viewer with synchronization."),
+            PipelineStep(
+                "template_build",
+                "Step 11 – Group template build",
+                "Build in-group MT/T2 template from multiple subjects (ANTs pairwise + averaging).",
+            ),
+            PipelineStep(
+                "template_register",
+                "Step 12 – Template registration",
+                "Register template-to-template or template-to-atlas (ANTs: Rigid + Affine + SyN).",
+            ),
         ]
 
     def get_step(self, key: str) -> Optional[PipelineStep]:
