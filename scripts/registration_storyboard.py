@@ -139,7 +139,113 @@ def _as_existing(path_str: str) -> Path | None:
     return p if p.exists() else None
 
 
-def _build_rows(manifest: dict[str, Any], workflow_root: Path) -> list[StoryRow]:
+def _infer_stage_entries_from_filesystem(
+    manifest: dict[str, Any],
+    workflow_root: Path,
+    *,
+    prefix: str,
+) -> dict[str, dict[str, Any]]:
+    stages_dir = _as_existing(manifest.get("stages_dir", ""))
+    if stages_dir is None:
+        candidate = workflow_root / "stages"
+        stages_dir = candidate if candidate.exists() else None
+    if stages_dir is None:
+        return {}
+
+    out: dict[str, dict[str, Any]] = {}
+    for stage in ["rigid", "affine", "syn"]:
+        stage_dir = stages_dir / stage
+        warped = stage_dir / f"{prefix}{stage}_Warped.nii.gz"
+        if not warped.exists():
+            continue
+        qc = {}
+        qc_path = stage_dir / f"{prefix}{stage}_qc_metrics.json"
+        if qc_path.exists():
+            try:
+                qc = _read_json(qc_path)
+            except Exception:
+                qc = {}
+        out[stage] = {
+            "stage": stage,
+            "warped": str(warped),
+            "qc_metrics": qc if isinstance(qc, dict) else {},
+            "inferred_from": str(stage_dir),
+        }
+    return out
+
+
+def _load_trace_stage_order(manifest: dict[str, Any], workflow_root: Path) -> list[str]:
+    trace_path = _as_existing(manifest.get("trace_path", ""))
+    if trace_path is None:
+        candidate = workflow_root / "transform_trace.jsonl"
+        trace_path = candidate if candidate.exists() else None
+    if trace_path is None:
+        return []
+
+    order: list[str] = []
+    seen: set[str] = set()
+    try:
+        with trace_path.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                raw = line.strip()
+                if not raw:
+                    continue
+                evt = json.loads(raw)
+                if not isinstance(evt, dict):
+                    continue
+                step_name = str(evt.get("step_name", ""))
+                if step_name not in {"REG_STAGE_STARTED", "REG_STAGE_DONE"}:
+                    continue
+                stage = str(evt.get("stage", "")).strip()
+                if not stage or stage in seen:
+                    continue
+                seen.add(stage)
+                order.append(stage)
+    except Exception:
+        return []
+    return order
+
+
+def _extract_stage_transforms(entry: dict[str, Any] | None) -> list[str]:
+    if not entry:
+        return []
+    cmd = entry.get("command", [])
+    if not isinstance(cmd, list):
+        return []
+    toks = [str(x) for x in cmd]
+    transforms: list[str] = []
+    for idx, tok in enumerate(toks):
+        if tok == "-t" and idx + 1 < len(toks):
+            val = toks[idx + 1].strip()
+            if val:
+                transforms.append(val)
+    return transforms
+
+
+def _format_stage_label(stage: str, entry: dict[str, Any] | None, manifest: dict[str, Any]) -> str:
+    transforms = _extract_stage_transforms(entry)
+    method = ""
+    if transforms:
+        method = " + ".join(transforms)
+    elif stage == "syn":
+        method = str(manifest.get("nonlinear_transform_spec", "")).strip() or str(
+            manifest.get("nonlinear_transform", "")
+        ).strip()
+    elif stage == "rigid":
+        method = "Rigid"
+    elif stage == "affine":
+        method = "Affine"
+
+    reused = bool(entry and str(entry.get("reused_from_stage_dir", "")).strip())
+    if reused:
+        method = f"{method} (reused)".strip() if method else "reused"
+
+    if method:
+        return f"Stage: {stage}\nMethod: {method}"
+    return f"Stage: {stage}"
+
+
+def _build_rows(manifest: dict[str, Any], workflow_root: Path, *, prefix: str) -> list[StoryRow]:
     rows: list[StoryRow] = []
 
     fixed_input = _as_existing(manifest.get("fixed_image", ""))
@@ -201,18 +307,33 @@ def _build_rows(manifest: dict[str, Any], workflow_root: Path) -> list[StoryRow]
             )
         )
 
-    stage_order = manifest.get("registration_stage_order", []) or ["rigid", "affine", "syn"]
+    stage_order_raw = manifest.get("registration_stage_order", []) or []
+    stage_order = [str(s).strip() for s in stage_order_raw if str(s).strip()]
     stage_entries = {
         str(x.get("stage", "")): x for x in (manifest.get("registration_stages", []) or []) if isinstance(x, dict)
     }
+    inferred_stage_entries = _infer_stage_entries_from_filesystem(manifest, workflow_root, prefix=prefix)
+    for stage_name, stage_entry in inferred_stage_entries.items():
+        if stage_name not in stage_entries:
+            stage_entries[stage_name] = stage_entry
+    if not stage_order:
+        inferred_order = [s for s in ["rigid", "affine", "syn"] if s in stage_entries]
+        trace_order = _load_trace_stage_order(manifest, workflow_root)
+        stage_order = list(inferred_order)
+        for stage_name in trace_order:
+            if stage_name not in stage_order:
+                stage_order.append(stage_name)
+        if not stage_order:
+            stage_order = trace_order if trace_order else ["rigid", "affine", "syn"]
 
     for stage in stage_order:
         entry = stage_entries.get(stage)
+        stage_label = _format_stage_label(stage, entry, manifest)
         if not entry:
             rows.append(
                 StoryRow(
                     row_id=f"stage_{stage}",
-                    label=f"Stage: {stage}",
+                    label=stage_label,
                     kind="missing",
                     status="missing",
                     note="stage missing in this run",
@@ -225,7 +346,7 @@ def _build_rows(manifest: dict[str, Any], workflow_root: Path) -> list[StoryRow]
         rows.append(
             StoryRow(
                 row_id=f"stage_{stage}",
-                label=f"Stage: {stage}",
+                label=stage_label,
                 kind="overlay",
                 fixed_path=str(fixed_opt or fixed_input or ""),
                 moving_path=str(warped or ""),
@@ -312,8 +433,24 @@ def _robust_range(arr: np.ndarray) -> tuple[float, float]:
     return float(lo), float(hi)
 
 
-def _normalize(arr: np.ndarray, lo: float, hi: float) -> np.ndarray:
-    out = (arr - lo) / max(hi - lo, 1e-8)
+def _normalize(
+    arr: np.ndarray,
+    lo: float,
+    hi: float,
+    *,
+    zero_as_background: bool = False,
+    signed_magnitude: bool = False,
+) -> np.ndarray:
+    if signed_magnitude and lo < 0.0 < hi:
+        # Robust-z images are centered at 0 (about half negative by design).
+        # Use |z| for display intensity to avoid false "signal holes" from sign clipping.
+        scale = max(abs(lo), abs(hi), 1e-8)
+        out = np.abs(arr) / scale
+    elif zero_as_background and lo < 0.0 < hi:
+        # Anchor 0 to black so zero-valued background is not rendered mid-gray/red.
+        out = arr / max(hi, 1e-8)
+    else:
+        out = (arr - lo) / max(hi - lo, 1e-8)
     out = np.clip(out, 0.0, 1.0)
     out[~np.isfinite(out)] = 0
     return out
@@ -449,15 +586,25 @@ def _render_row(
         if row.kind == "overlay":
             flo, fhi = get_norm(row.fixed_path, fixed)
             mlo, mhi = get_norm(row.moving_path, moving)
-            rgb = _overlay_pair(_normalize(fs, flo, fhi), _normalize(ms, mlo, mhi))
+            rgb = _overlay_pair(
+                _normalize(fs, flo, fhi, zero_as_background=True, signed_magnitude=True),
+                _normalize(ms, mlo, mhi, zero_as_background=True, signed_magnitude=True),
+            )
             ax.imshow(rgb, interpolation="nearest")
         elif row.kind == "labels":
             blo, bhi = get_norm(row.fixed_path, fixed)
-            rgb = _overlay_labels(_normalize(fs, blo, bhi), ms)
+            rgb = _overlay_labels(
+                _normalize(fs, blo, bhi, zero_as_background=True, signed_magnitude=True),
+                ms,
+            )
             ax.imshow(rgb, interpolation="nearest")
         elif row.kind == "scalar":
             slo, shi = get_norm(row.scalar_path, fixed)
-            ax.imshow(_normalize(fs, slo, shi), cmap="magma", interpolation="nearest")
+            ax.imshow(
+                _normalize(fs, slo, shi, zero_as_background=True, signed_magnitude=True),
+                cmap="magma",
+                interpolation="nearest",
+            )
         else:
             ax.set_facecolor("#222222")
             ax.text(0.5, 0.5, "UNSUPPORTED", color="white", ha="center", va="center", fontsize=9)
@@ -491,7 +638,7 @@ def main() -> None:
     manifest_path = _resolve_manifest(reg_dir, args.prefix, args.manifest)
     manifest = _read_json(manifest_path)
 
-    rows = _build_rows(manifest, workflow_root)
+    rows = _build_rows(manifest, workflow_root, prefix=args.prefix)
     cache: dict[str, np.ndarray] = {}
     norm_cache: dict[str, tuple[float, float]] = {}
 
@@ -528,6 +675,7 @@ def main() -> None:
     plt.close(fig)
 
     manifest_out = output_path.with_name("registration_storyboard_manifest.json")
+    derived_stage_order = [r.row_id.replace("stage_", "", 1) for r in rows if r.row_id.startswith("stage_")]
     manifest_payload = {
         "run_id": manifest.get("run_id", ""),
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -537,7 +685,7 @@ def main() -> None:
         "registration_manifest": str(manifest_path),
         "output_png": str(output_path),
         "center_mode": "per_image_own_center_per_row",
-        "registration_stage_order": manifest.get("registration_stage_order", []),
+        "registration_stage_order": derived_stage_order,
         "storyboard_contract_note": (
             manifest.get("storyboard_contract_note", "")
             or "If pipeline steps change or are skipped in future runs, storyboard must follow that run's actual stage list."

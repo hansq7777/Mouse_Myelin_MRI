@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List
@@ -23,9 +24,6 @@ LOCKED_DENOISE_NOISE_MODEL = "Rician"
 LOCKED_DENOISE_SHRINK_FACTOR = "1"
 LOCKED_DENOISE_PATCH_RADIUS = "1x1x1"
 LOCKED_DENOISE_SEARCH_RADIUS = "2x2x2"
-LOCKED_OPT_NORM_CLIP_LOW_PERCENT = 1.0
-LOCKED_OPT_NORM_CLIP_HIGH_PERCENT = 99.0
-LOCKED_OPT_NORM_ROBUST_SCALE = 1.4826
 LOCKED_AFFINE_FALLBACK_ORDER = "moments,geometry,antsai"
 LOCKED_AFFINE_MIN_DICE = 0.55
 LOCKED_AFFINE_MIN_NMI = 1.0
@@ -35,10 +33,13 @@ LOCKED_AFFINE_DET_MAX = 4.0
 LOCKED_AFFINE_SV_MIN = 0.25
 LOCKED_AFFINE_SV_MAX = 4.0
 LOCKED_JAC_MIN = 0.05
+LOCKED_JAC_MIN_HARD_GATE = "off"
 LOCKED_JAC_P01_MIN = 0.20
 LOCKED_JAC_P99_MAX = 5.0
 LOCKED_JAC_NEG_FRAC_MAX = 0.001
 LOCKED_WARP_L2_ENERGY_MAX = 50.0
+LOCKED_WARP_L2_HARD_GATE = "off"
+LOCKED_JAC_MASK_EROSION_ITERS = 1
 LOCKED_TIE_BREAK_DICE_EPS = 0.005
 LOCKED_COVERAGE_MARGIN_MIN_VOX = 10
 LOCKED_COVERAGE_MARGIN_MIN_MM = 2.5
@@ -49,6 +50,21 @@ LOCKED_ANTSAI_TRANSLATION_GRID = "[20,0x0x0]"
 LOCKED_DEFORMATION_GRID_DIRECTIONS = "1x1x0"
 LOCKED_DEFORMATION_GRID_SPACING = "10x10x10"
 LOCKED_DEFORMATION_GRID_SIGMA = "1x1x1"
+LOCKED_NONLINEAR_TRANSFORM = "syn"
+LOCKED_NONLINEAR_TRANSFORM_SPECS = {
+    # Diffeomorphic baseline.
+    "syn": "SyN[0.05,3,0]",
+    # Diffeomorphic B-spline parameterization.
+    "bspline_syn": "BSplineSyN[0.05,8,0,3]",
+    # Non-diffeomorphic displacement field families.
+    "bspline_displacement_field": "BSplineDisplacementField[0.5,8,0,3]",
+    "gaussian_displacement_field": "GaussianDisplacementField[0.5,3,0]",
+    # Diffeomorphic velocity-based families.
+    "time_varying_velocity_field": "TimeVaryingVelocityField[0.5,4,3,0,0,0]",
+    "time_varying_bspline_velocity_field": "TimeVaryingBSplineVelocityField[0.5,8,4,3]",
+    "exponential": "Exponential[0.5,3,0,4]",
+    "bspline_exponential": "BSplineExponential[0.5,8,0,4,3]",
+}
 
 
 def now_iso() -> str:
@@ -98,10 +114,42 @@ def run_logged(cmd: List[str], *, env: dict[str, str] | None = None, log_path: P
     }
 
 
+def run_logged_retry(
+    cmd: List[str],
+    *,
+    env: dict[str, str] | None = None,
+    log_path: Path | None = None,
+    retry_codes: list[int] | None = None,
+    attempts: int = 3,
+    retry_wait_sec: float = 2.0,
+) -> dict[str, Any]:
+    if attempts < 1:
+        attempts = 1
+    allowed = {int(x) for x in (retry_codes or [66])}
+    last_exc: Exception | None = None
+    for idx in range(1, attempts + 1):
+        try:
+            return run_logged(cmd, env=env, log_path=log_path)
+        except Exception as exc:
+            last_exc = exc
+            msg = str(exc)
+            can_retry = any(f"Command failed ({code})" in msg for code in allowed)
+            if idx >= attempts or not can_retry:
+                raise
+            print(
+                f"[WARN] transient command failure; retry {idx}/{attempts} after {retry_wait_sec * idx:.1f}s: {msg}",
+                flush=True,
+            )
+            time.sleep(retry_wait_sec * idx)
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError("run_logged_retry reached unexpected state")
+
+
 def ensure_exec(ants_bin: Path, name: str) -> str:
     candidates = [
-        ants_bin / name,
         ants_bin / f"{name}.exe",
+        ants_bin / name,
     ]
     for exe in candidates:
         if exe.exists():
@@ -158,6 +206,30 @@ def cast_nifti_dtype(path: Path, dtype: np.dtype) -> None:
 
 def ensure_float32(path: Path) -> None:
     cast_nifti_dtype(path, np.float32)
+
+
+def binary_erode_mask6(mask: np.ndarray, iterations: int) -> np.ndarray:
+    out = np.asarray(mask, dtype=bool)
+    if out.ndim != 3 or iterations <= 0:
+        return out
+    for _ in range(iterations):
+        if out.shape[0] < 3 or out.shape[1] < 3 or out.shape[2] < 3:
+            return np.zeros_like(out, dtype=bool)
+        nxt = np.zeros_like(out, dtype=bool)
+        center = out[1:-1, 1:-1, 1:-1]
+        neighbors = (
+            out[:-2, 1:-1, 1:-1]
+            & out[2:, 1:-1, 1:-1]
+            & out[1:-1, :-2, 1:-1]
+            & out[1:-1, 2:, 1:-1]
+            & out[1:-1, 1:-1, :-2]
+            & out[1:-1, 1:-1, 2:]
+        )
+        nxt[1:-1, 1:-1, 1:-1] = center & neighbors
+        out = nxt
+        if np.count_nonzero(out) == 0:
+            break
+    return out
 
 
 def compute_mi_cc(fixed_path: Path, moving_path: Path, bins: int = 64) -> dict[str, float]:
@@ -306,76 +378,6 @@ def evaluate_mask_coverage_margin(
     }
 
 
-def normalize_intensity_robust_z(
-    image_path: Path,
-    out_path: Path,
-    mask_path: Path | None = None,
-    *,
-    clip_low_percent: float = LOCKED_OPT_NORM_CLIP_LOW_PERCENT,
-    clip_high_percent: float = LOCKED_OPT_NORM_CLIP_HIGH_PERCENT,
-) -> dict[str, float]:
-    img = nib.load(str(image_path))
-    data = np.asarray(img.get_fdata(), dtype=np.float32)
-    mask = np.isfinite(data)
-    mask_source = "finite_nonzero"
-    if mask_path and mask_path.exists():
-        m = np.asarray(nib.load(str(mask_path)).get_fdata(), dtype=np.float32) > 0
-        if m.shape != data.shape:
-            raise RuntimeError(
-                f"Normalization mask shape mismatch: image {data.shape}, mask {m.shape} ({mask_path})"
-            )
-        mask &= m
-        mask_source = "provided_mask"
-    else:
-        mask &= data != 0
-
-    if np.count_nonzero(mask) < 100:
-        mask = np.isfinite(data)
-        mask_source = "finite_fallback"
-        if np.count_nonzero(mask) < 100:
-            raise RuntimeError(f"Normalization failed: too few finite voxels in {image_path}")
-
-    vals = data[mask].astype(np.float64)
-    p_lo, p_hi = np.percentile(vals, [clip_low_percent, clip_high_percent])
-    if not np.isfinite(p_lo):
-        p_lo = float(np.nanmin(vals))
-    if not np.isfinite(p_hi):
-        p_hi = float(np.nanmax(vals))
-    if p_hi - p_lo < 1e-8:
-        p_lo = float(np.min(vals))
-        p_hi = float(np.max(vals))
-
-    clipped_vals = np.clip(vals, p_lo, p_hi)
-    median = float(np.median(clipped_vals))
-    mad = float(np.median(np.abs(clipped_vals - median)))
-    robust_sigma = max(float(LOCKED_OPT_NORM_ROBUST_SCALE * mad), 1e-6)
-
-    out = np.clip(data, p_lo, p_hi)
-    out = (out - median) / robust_sigma
-    out[~mask] = 0.0
-    out[~np.isfinite(out)] = 0.0
-
-    hdr = img.header.copy()
-    hdr.set_data_dtype(np.float32)
-    out_img = nib.Nifti1Image(out.astype(np.float32), img.affine, hdr)
-    qf, qcode = img.get_qform(coded=True)
-    sf, scode = img.get_sform(coded=True)
-    out_img.set_qform(qf if qf is not None else img.affine, code=int(qcode))
-    out_img.set_sform(sf if sf is not None else img.affine, code=int(scode))
-    nib.save(out_img, str(out_path))
-    return {
-        "clip_low_percent": float(clip_low_percent),
-        "clip_high_percent": float(clip_high_percent),
-        "clip_low_value": float(p_lo),
-        "clip_high_value": float(p_hi),
-        "median_after_clip": float(median),
-        "mad_after_clip": float(mad),
-        "robust_sigma": float(robust_sigma),
-        "masked_voxels": int(np.count_nonzero(mask)),
-        "mask_source": mask_source,
-    }
-
-
 def preprocess_image(
     *,
     image_path: Path,
@@ -486,35 +488,16 @@ def preprocess_image(
     }
 
     transform_apply_output = current
-    opt_norm_out = out_dir / f"{stem}_opt_norm.nii.gz"
-    opt_norm_stats = normalize_intensity_robust_z(
-        transform_apply_output,
-        opt_norm_out,
-        mask_path=mask_path,
-        clip_low_percent=LOCKED_OPT_NORM_CLIP_LOW_PERCENT,
-        clip_high_percent=LOCKED_OPT_NORM_CLIP_HIGH_PERCENT,
-    )
-    ensure_float32(opt_norm_out)
-    current = opt_norm_out
     info["optimization_normalization"] = {
-        "enabled": True,
-        "method": "percentile_clip_then_robust_zscore",
-        "output": str(opt_norm_out),
-        "config": {
-            "clip_low_percent": LOCKED_OPT_NORM_CLIP_LOW_PERCENT,
-            "clip_high_percent": LOCKED_OPT_NORM_CLIP_HIGH_PERCENT,
-            "robust_scale_factor": LOCKED_OPT_NORM_ROBUST_SCALE,
-            "center": "median",
-            "scale": "MAD",
-            "mask_only": True,
-            "outside_mask_value": 0.0,
-        },
-        "stats": opt_norm_stats,
+        "enabled": False,
+        "method": "none_use_n4_direct",
+        "output": str(transform_apply_output),
+        "reason": "opt_norm_strategy_removed",
     }
     info["transform_apply_output"] = str(transform_apply_output)
-    info["optimization_output"] = str(current)
-    info["final_output"] = str(current)
-    return current, transform_apply_output, info
+    info["optimization_output"] = str(transform_apply_output)
+    info["final_output"] = str(transform_apply_output)
+    return transform_apply_output, transform_apply_output, info
 
 
 def parse_init_order(raw: str) -> list[str]:
@@ -529,6 +512,74 @@ def parse_init_order(raw: str) -> list[str]:
         if key not in out:
             out.append(key)
     return out
+
+
+def load_existing_stage_result(
+    *,
+    stage_name: str,
+    stage_dir: Path,
+    prefix: str,
+    fixed_opt_path: Path,
+    fixed_mask_path: Path | None,
+) -> dict[str, Any]:
+    stage_prefix = stage_dir / f"{prefix}{stage_name}_"
+    stage_warped = stage_dir / f"{prefix}{stage_name}_Warped.nii.gz"
+    stage_inverse = stage_dir / f"{prefix}{stage_name}_InverseWarped.nii.gz"
+    stage_affine = stage_dir / f"{prefix}{stage_name}_0GenericAffine.mat"
+    stage_warp = stage_dir / f"{prefix}{stage_name}_1Warp.nii.gz"
+    stage_inv_warp = stage_dir / f"{prefix}{stage_name}_1InverseWarp.nii.gz"
+    moved_mask_stage = stage_dir / f"{prefix}{stage_name}_movingMaskInFixed.nii.gz"
+    qc_stage_path = stage_dir / f"{prefix}{stage_name}_qc_metrics.json"
+
+    if not stage_warped.exists():
+        raise FileNotFoundError(f"Reused stage missing warped image: {stage_warped}")
+    if not stage_affine.exists():
+        raise FileNotFoundError(f"Reused stage missing affine matrix: {stage_affine}")
+    ensure_float32(stage_warped)
+    if stage_inverse.exists():
+        ensure_float32(stage_inverse)
+    if stage_warp.exists():
+        ensure_float32(stage_warp)
+    if stage_inv_warp.exists():
+        ensure_float32(stage_inv_warp)
+
+    if qc_stage_path.exists():
+        try:
+            qc_stage = read_json(qc_stage_path)
+        except Exception:
+            qc_stage = {}
+    else:
+        qc_stage = {}
+    if not isinstance(qc_stage, dict) or not qc_stage:
+        qc_stage = compute_mi_cc(fixed_opt_path, stage_warped)
+        if fixed_mask_path and fixed_mask_path.exists() and moved_mask_stage.exists():
+            qc_stage["dice"] = compute_dice(fixed_mask_path, moved_mask_stage)
+        write_json(qc_stage_path, qc_stage)
+
+    stage_transform_files = [str(stage_affine)]
+    if stage_warp.exists():
+        stage_transform_files.append(str(stage_warp))
+    if stage_inv_warp.exists():
+        stage_transform_files.append(str(stage_inv_warp))
+
+    return {
+        "stage": stage_name,
+        "status": "success",
+        "dir": str(stage_dir),
+        "prefix": str(stage_prefix),
+        "warped": str(stage_warped),
+        "inverse_warped": str(stage_inverse),
+        "affine_mat": str(stage_affine),
+        "warp_field": str(stage_warp) if stage_warp.exists() else "",
+        "inverse_warp_field": str(stage_inv_warp) if stage_inv_warp.exists() else "",
+        "moving_mask_in_fixed": str(moved_mask_stage) if moved_mask_stage.exists() else "",
+        "qc_metrics": qc_stage,
+        "qc_path": str(qc_stage_path),
+        "init_spec": "",
+        "command": [],
+        "transform_files": stage_transform_files,
+        "reused_from_stage_dir": str(stage_dir),
+    }
 
 
 def read_affine_linear_info(
@@ -636,6 +687,7 @@ def compute_jacobian_and_warp_metrics(
     warp_field: Path,
     fixed_mask_path: Path | None,
     jacobian_exec: str,
+    mask_erosion_iters: int,
     windows_mode: bool,
     env: dict[str, str],
     out_dir: Path,
@@ -657,22 +709,35 @@ def compute_jacobian_and_warp_metrics(
     ensure_float32(jac_img)
 
     jac_data = np.asarray(nib.load(str(jac_img)).get_fdata(), dtype=np.float32)
+    fixed_mask_data: np.ndarray | None = None
+    if fixed_mask_path and fixed_mask_path.exists():
+        fixed_mask_data = np.asarray(nib.load(str(fixed_mask_path)).get_fdata(), dtype=np.float32) > 0
+
     jac_mask = np.isfinite(jac_data)
     jac_mask_source = "finite"
-    if fixed_mask_path and fixed_mask_path.exists():
-        m = np.asarray(nib.load(str(fixed_mask_path)).get_fdata(), dtype=np.float32) > 0
-        if m.shape != jac_data.shape:
+    if fixed_mask_data is not None:
+        if fixed_mask_data.shape != jac_data.shape:
             raise RuntimeError(
-                f"Jacobian mask shape mismatch: jacobian {jac_data.shape}, mask {m.shape} ({fixed_mask_path})"
+                f"Jacobian mask shape mismatch: jacobian {jac_data.shape}, mask {fixed_mask_data.shape} ({fixed_mask_path})"
             )
-        jac_mask &= m
+        stat_mask = fixed_mask_data
         jac_mask_source = "fixed_mask"
+        if mask_erosion_iters > 0:
+            eroded = binary_erode_mask6(stat_mask, mask_erosion_iters)
+            if np.count_nonzero(eroded) >= 100:
+                stat_mask = eroded
+                jac_mask_source = f"fixed_mask_eroded_{mask_erosion_iters}"
+            else:
+                jac_mask_source = f"fixed_mask_no_erosion_low_voxels(iter={mask_erosion_iters})"
+        jac_mask &= stat_mask
     if np.count_nonzero(jac_mask) < 100:
         jac_mask = np.isfinite(jac_data)
         jac_mask_source = "finite_fallback"
     jac_vals = jac_data[jac_mask].astype(np.float64)
     jac_stats = {
         "min": float(np.min(jac_vals)) if jac_vals.size else float("nan"),
+        "p0_1": float(np.percentile(jac_vals, 0.1)) if jac_vals.size else float("nan"),
+        "p0_01": float(np.percentile(jac_vals, 0.01)) if jac_vals.size else float("nan"),
         "p01": float(np.percentile(jac_vals, 1.0)) if jac_vals.size else float("nan"),
         "p99": float(np.percentile(jac_vals, 99.0)) if jac_vals.size else float("nan"),
         "negative_fraction": (
@@ -691,14 +756,21 @@ def compute_jacobian_and_warp_metrics(
     warp_norm2 = np.sum(warp_data[..., :3] * warp_data[..., :3], axis=-1)
     warp_mask = np.isfinite(warp_norm2)
     warp_mask_source = "finite"
-    if fixed_mask_path and fixed_mask_path.exists():
-        wm = np.asarray(nib.load(str(fixed_mask_path)).get_fdata(), dtype=np.float32) > 0
-        if wm.shape != warp_norm2.shape:
+    if fixed_mask_data is not None:
+        if fixed_mask_data.shape != warp_norm2.shape:
             raise RuntimeError(
-                f"Warp energy mask shape mismatch: warp {warp_norm2.shape}, mask {wm.shape} ({fixed_mask_path})"
+                f"Warp energy mask shape mismatch: warp {warp_norm2.shape}, mask {fixed_mask_data.shape} ({fixed_mask_path})"
             )
-        warp_mask &= wm
+        stat_mask = fixed_mask_data
         warp_mask_source = "fixed_mask"
+        if mask_erosion_iters > 0:
+            eroded = binary_erode_mask6(stat_mask, mask_erosion_iters)
+            if np.count_nonzero(eroded) >= 100:
+                stat_mask = eroded
+                warp_mask_source = f"fixed_mask_eroded_{mask_erosion_iters}"
+            else:
+                warp_mask_source = f"fixed_mask_no_erosion_low_voxels(iter={mask_erosion_iters})"
+        warp_mask &= stat_mask
     if np.count_nonzero(warp_mask) < 100:
         warp_mask = np.isfinite(warp_norm2)
         warp_mask_source = "finite_fallback"
@@ -707,6 +779,7 @@ def compute_jacobian_and_warp_metrics(
         "l2_energy_mean": float(np.mean(warp_vals)) if warp_vals.size else float("nan"),
         "l2_energy_rms": float(np.sqrt(np.mean(warp_vals))) if warp_vals.size else float("nan"),
         "l2_energy_p99": float(np.percentile(warp_vals, 99.0)) if warp_vals.size else float("nan"),
+        "unit_note": "depends_on_warp_field_units_and_spacing_for_cross-dataset_comparison",
         "mask_source": warp_mask_source,
         "masked_voxels": int(warp_vals.size),
     }
@@ -737,10 +810,12 @@ def evaluate_attempt_gate(
     sv_min: float,
     sv_max: float,
     jac_min_threshold: float,
+    jac_min_hard_gate: bool,
     jac_p01_min: float,
     jac_p99_max: float,
     jac_neg_frac_max: float,
     warp_l2_energy_max: float,
+    warp_l2_hard_gate: bool,
 ) -> dict[str, Any]:
     qc = dict(affine_result.get("qc_metrics", {}))
     dice = float(qc.get("dice")) if qc.get("dice") is not None else float("nan")
@@ -755,12 +830,16 @@ def evaluate_attempt_gate(
     jac_stats = dict(jacobian_metrics.get("jacobian", {}))
     warp_energy = dict(jacobian_metrics.get("warp_energy", {}))
     jac_min = float(jac_stats.get("min", float("nan")))
+    jac_p0_1 = float(jac_stats.get("p0_1", float("nan")))
     jac_p01 = float(jac_stats.get("p01", float("nan")))
     jac_p99 = float(jac_stats.get("p99", float("nan")))
     jac_neg_frac = float(jac_stats.get("negative_fraction", float("nan")))
     warp_l2_energy = float(warp_energy.get("l2_energy_mean", float("nan")))
 
     reasons: list[str] = []
+    warnings: list[str] = []
+    similarity_failure = False
+    jacobian_failure = False
     if not np.isfinite(det):
         reasons.append("affine_det_nonfinite")
     if np.isfinite(det) and (det < det_min or det > det_max):
@@ -777,39 +856,66 @@ def evaluate_attempt_gate(
 
     if np.isfinite(dice) and dice < min_dice:
         reasons.append(f"affine_dice_low({dice:.6f}<{min_dice:.6f})")
+        similarity_failure = True
     if np.isfinite(nmi) and nmi < min_nmi:
         reasons.append(f"affine_nmi_low({nmi:.6f}<{min_nmi:.6f})")
+        similarity_failure = True
     if np.isfinite(cc) and cc < min_cc:
         reasons.append(f"affine_cc_low({cc:.6f}<{min_cc:.6f})")
+        similarity_failure = True
 
     if not np.isfinite(jac_min):
-        reasons.append("jacobian_min_nonfinite")
+        jac_min_msg = "jacobian_min_nonfinite"
+        if jac_min_hard_gate:
+            reasons.append(jac_min_msg)
+            jacobian_failure = True
+        else:
+            warnings.append(jac_min_msg)
     elif jac_min < jac_min_threshold:
-        reasons.append(f"jacobian_min_low({jac_min:.6f}<{jac_min_threshold:.6f})")
+        jac_min_msg = f"jacobian_min_low({jac_min:.6f}<{jac_min_threshold:.6f})"
+        if jac_min_hard_gate:
+            reasons.append(jac_min_msg)
+            jacobian_failure = True
+        else:
+            warnings.append(jac_min_msg)
     if not np.isfinite(jac_p01):
         reasons.append("jacobian_p01_nonfinite")
+        jacobian_failure = True
     elif jac_p01 < jac_p01_min:
         reasons.append(f"jacobian_p01_low({jac_p01:.6f}<{jac_p01_min:.6f})")
+        jacobian_failure = True
     if not np.isfinite(jac_p99):
         reasons.append("jacobian_p99_nonfinite")
+        jacobian_failure = True
     elif jac_p99 > jac_p99_max:
         reasons.append(f"jacobian_p99_high({jac_p99:.6f}>{jac_p99_max:.6f})")
+        jacobian_failure = True
     if not np.isfinite(jac_neg_frac):
         reasons.append("jacobian_negative_fraction_nonfinite")
+        jacobian_failure = True
     elif jac_neg_frac > jac_neg_frac_max:
         reasons.append(f"jacobian_negative_fraction_high({jac_neg_frac:.6f}>{jac_neg_frac_max:.6f})")
+        jacobian_failure = True
 
+    warp_alert = ""
     if not np.isfinite(warp_l2_energy):
-        reasons.append("warp_l2_energy_nonfinite")
+        warp_alert = "warp_l2_energy_nonfinite"
+        warnings.append(warp_alert)
     elif warp_l2_energy > warp_l2_energy_max:
-        reasons.append(f"warp_l2_energy_high({warp_l2_energy:.6f}>{warp_l2_energy_max:.6f})")
+        warp_alert = f"warp_l2_energy_high({warp_l2_energy:.6f}>{warp_l2_energy_max:.6f})"
+        warnings.append(warp_alert)
+    if warp_alert:
+        if warp_l2_hard_gate:
+            reasons.append(warp_alert)
+        elif similarity_failure or jacobian_failure:
+            reasons.append(f"{warp_alert}_joint_with_similarity_or_jacobian_failure")
 
     # Deterministic score for tie-break/ranking among gate-qualified attempts.
     score = (
         -1.0 if not np.isfinite(dice) else float(dice),
         -1.0 if not np.isfinite(nmi) else float(nmi),
         -1.0 if not np.isfinite(cc) else float(cc),
-        -1.0 if not np.isfinite(jac_min) else float(jac_min),
+        -1.0 if not np.isfinite(jac_p0_1) else float(jac_p0_1),
         -1.0 if not np.isfinite(jac_p01) else float(jac_p01),
         -1.0 if not np.isfinite(jac_p99) else -abs(float(np.log(max(jac_p99, 1e-12)))),
         -1e9 if not np.isfinite(jac_neg_frac) else -float(jac_neg_frac),
@@ -820,6 +926,7 @@ def evaluate_attempt_gate(
     return {
         "passed": len(reasons) == 0,
         "reasons": reasons,
+        "warnings": warnings,
         "affine_qc": qc,
         "affine_linear": {
             "determinant": det,
@@ -831,6 +938,12 @@ def evaluate_attempt_gate(
         "jacobian": jac_stats,
         "warp_energy": warp_energy,
         "score": score,
+        "gate_context": {
+            "similarity_failure": similarity_failure,
+            "jacobian_failure": jacobian_failure,
+            "warp_alert": warp_alert,
+            "warp_joint_failure_logic": "soft_by_default_fail_only_if_joint_with_similarity_or_jacobian_failure",
+        },
         "thresholds": {
             "min_dice": float(min_dice),
             "min_nmi": float(min_nmi),
@@ -840,10 +953,12 @@ def evaluate_attempt_gate(
             "sv_min": float(sv_min),
             "sv_max": float(sv_max),
             "jac_min_threshold": float(jac_min_threshold),
+            "jac_min_hard_gate": bool(jac_min_hard_gate),
             "jac_p01_min": float(jac_p01_min),
             "jac_p99_max": float(jac_p99_max),
             "jac_neg_frac_max": float(jac_neg_frac_max),
             "warp_l2_energy_max": float(warp_l2_energy_max),
+            "warp_l2_hard_gate": bool(warp_l2_hard_gate),
         },
     }
 
@@ -923,9 +1038,21 @@ def sanitize_id(text: str) -> str:
     return re.sub(r"[^A-Za-z0-9_\-]+", "_", text).strip("_")
 
 
+def resolve_nonlinear_transform_spec(transform_name: str, custom_spec: str) -> str:
+    name = transform_name.strip().lower()
+    if name == "custom":
+        spec = custom_spec.strip()
+        if not spec:
+            raise RuntimeError("--nonlinear-transform=custom requires --nonlinear-transform-spec.")
+        return spec
+    if name not in LOCKED_NONLINEAR_TRANSFORM_SPECS:
+        raise RuntimeError(f"Unsupported nonlinear transform: {transform_name}")
+    return LOCKED_NONLINEAR_TRANSFORM_SPECS[name]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Register moving template to fixed template/atlas (Rigid + Affine + SyN)."
+        description="Register moving template to fixed template/atlas (Rigid + Affine + nonlinear transform)."
     )
     parser.add_argument("--fixed", required=True, help="Fixed image.")
     parser.add_argument("--moving", required=True, help="Moving image.")
@@ -1048,7 +1175,22 @@ def parse_args() -> argparse.Namespace:
         "--jac-min",
         type=float,
         default=LOCKED_JAC_MIN,
-        help="Jacobian hard threshold: minimum determinant value within mask.",
+        help=(
+            "Jacobian advisory threshold: minimum determinant value within mask. "
+            "Hard gating is controlled by --jac-min-hard-gate."
+        ),
+    )
+    parser.add_argument(
+        "--jac-min-hard-gate",
+        default=LOCKED_JAC_MIN_HARD_GATE,
+        choices=["on", "off"],
+        help="If on, jac-min threshold is a hard fail gate; default off to avoid outlier-driven false reject.",
+    )
+    parser.add_argument(
+        "--jac-mask-erosion-iters",
+        type=int,
+        default=LOCKED_JAC_MASK_EROSION_ITERS,
+        help="Erode fixed mask by N iterations before Jacobian/warp stats to reduce boundary artifacts.",
     )
     parser.add_argument(
         "--jac-p01-min",
@@ -1072,7 +1214,19 @@ def parse_args() -> argparse.Namespace:
         "--warp-l2-energy-max",
         type=float,
         default=LOCKED_WARP_L2_ENERGY_MAX,
-        help="Warp hard threshold: maximum mean L2 energy (mean ||u||^2) within mask.",
+        help=(
+            "Warp L2 advisory threshold: maximum mean ||u||^2 within mask. "
+            "Hard gating is controlled by --warp-l2-hard-gate."
+        ),
+    )
+    parser.add_argument(
+        "--warp-l2-hard-gate",
+        default=LOCKED_WARP_L2_HARD_GATE,
+        choices=["on", "off"],
+        help=(
+            "If off (default), warp L2 is soft warning and only fails jointly with similarity/Jacobian failures. "
+            "If on, warp L2 exceeds threshold is immediate hard fail."
+        ),
     )
     parser.add_argument(
         "--tie-break-dice-eps",
@@ -1125,6 +1279,23 @@ def parse_args() -> argparse.Namespace:
         help="Shrink factors for SyN stage.",
     )
     parser.add_argument(
+        "--nonlinear-transform",
+        default=LOCKED_NONLINEAR_TRANSFORM,
+        choices=sorted(list(LOCKED_NONLINEAR_TRANSFORM_SPECS.keys()) + ["custom"]),
+        help=(
+            "Nonlinear transform family for the final stage. "
+            "Use --nonlinear-transform-spec to override the exact ANTs transform spec."
+        ),
+    )
+    parser.add_argument(
+        "--nonlinear-transform-spec",
+        default="",
+        help=(
+            "Optional explicit ANTs transform spec string for nonlinear stage, "
+            "e.g. 'SyN[0.05,3,0]'. Required when --nonlinear-transform=custom."
+        ),
+    )
+    parser.add_argument(
         "--resample-interpolation",
         default="Linear",
         choices=[
@@ -1146,6 +1317,22 @@ def parse_args() -> argparse.Namespace:
         default="C:/tools/ANTs/ants-2.6.5/bin",
         help="ANTs bin directory (contains antsRegistration.exe).",
     )
+    parser.add_argument(
+        "--reuse-preproc-dir",
+        default="",
+        help=(
+            "Optional existing preproc directory to reuse fixed/moving N4 outputs "
+            f"({{prefix}}fixed_n4.nii.gz and {{prefix}}moving_n4.nii.gz)."
+        ),
+    )
+    parser.add_argument(
+        "--reuse-linear-stages-dir",
+        default="",
+        help=(
+            "Optional existing stages directory to reuse rigid/affine results "
+            "(expects rigid/ and affine/ subfolders with current prefix file names)."
+        ),
+    )
     parser.add_argument("--threads", type=int, default=4, help="ITK/OMP threads.")
     parser.add_argument(
         "--random-seed",
@@ -1157,6 +1344,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    nonlinear_transform_name = args.nonlinear_transform.strip().lower()
+    nonlinear_transform_spec = resolve_nonlinear_transform_spec(
+        nonlinear_transform_name,
+        args.nonlinear_transform_spec,
+    )
 
     fixed = normalize_path(args.fixed)
     moving = normalize_path(args.moving)
@@ -1185,6 +1377,8 @@ def main() -> None:
         "fixed_image": str(fixed),
         "moving_image": str(moving),
         "resample_interpolation": args.resample_interpolation,
+        "nonlinear_transform": nonlinear_transform_name,
+        "nonlinear_transform_spec": nonlinear_transform_spec,
         "trace_path": str(trace_path),
     }
 
@@ -1200,6 +1394,8 @@ def main() -> None:
             "fixed_image": str(fixed),
             "moving_image": str(moving),
             "edge_id": edge_id,
+            "nonlinear_transform": nonlinear_transform_name,
+            "nonlinear_transform_spec": nonlinear_transform_spec,
         },
     )
 
@@ -1223,8 +1419,9 @@ def main() -> None:
         ants_transform_info = ensure_exec(ants_bin, "antsTransformInfo")
         fallback_methods = parse_init_order(args.affine_fallback_order)
         fallback_on = args.affine_fallback == "on"
+        reuse_linear_requested = bool(args.reuse_linear_stages_dir.strip())
         ants_ai = ""
-        if fallback_on and "antsai" in fallback_methods:
+        if fallback_on and (not reuse_linear_requested) and "antsai" in fallback_methods:
             ants_ai = ensure_exec(ants_bin, "antsAI")
         windows_mode = ants_reg.lower().endswith(".exe")
 
@@ -1244,6 +1441,8 @@ def main() -> None:
             raise RuntimeError("--jac-p99-max must be > 0.")
         if args.jac_neg_frac_max < 0 or args.jac_neg_frac_max > 1:
             raise RuntimeError("--jac-neg-frac-max must be within [0,1].")
+        if args.jac_mask_erosion_iters < 0:
+            raise RuntimeError("--jac-mask-erosion-iters must be >= 0.")
         if args.warp_l2_energy_max <= 0:
             raise RuntimeError("--warp-l2-energy-max must be > 0.")
         if args.tie_break_dice_eps <= 0:
@@ -1262,6 +1461,7 @@ def main() -> None:
 
         moving_denoise_on = args.moving_denoise == "on"
         preproc_dir = output_dir / "preproc"
+        reuse_preproc_dir = normalize_path(args.reuse_preproc_dir) if args.reuse_preproc_dir.strip() else None
         preproc_info: dict[str, Any] = {
             "mode": preprocess_mode,
             "moving_denoise": args.moving_denoise,
@@ -1274,9 +1474,6 @@ def main() -> None:
                 "moving_denoise_shrink_factor": LOCKED_DENOISE_SHRINK_FACTOR,
                 "moving_denoise_patch_radius": LOCKED_DENOISE_PATCH_RADIUS,
                 "moving_denoise_search_radius": LOCKED_DENOISE_SEARCH_RADIUS,
-                "opt_norm_clip_low_percent": LOCKED_OPT_NORM_CLIP_LOW_PERCENT,
-                "opt_norm_clip_high_percent": LOCKED_OPT_NORM_CLIP_HIGH_PERCENT,
-                "opt_norm_robust_scale_factor": LOCKED_OPT_NORM_ROBUST_SCALE,
                 "affine_fallback_enabled": fallback_on,
                 "affine_fallback_order": fallback_methods,
                 "affine_min_dice": args.affine_min_dice,
@@ -1287,10 +1484,13 @@ def main() -> None:
                 "affine_sv_min": args.affine_sv_min,
                 "affine_sv_max": args.affine_sv_max,
                 "jac_min": args.jac_min,
+                "jac_min_hard_gate": args.jac_min_hard_gate,
+                "jac_mask_erosion_iters": args.jac_mask_erosion_iters,
                 "jac_p01_min": args.jac_p01_min,
                 "jac_p99_max": args.jac_p99_max,
                 "jac_neg_frac_max": args.jac_neg_frac_max,
                 "warp_l2_energy_max": args.warp_l2_energy_max,
+                "warp_l2_hard_gate": args.warp_l2_hard_gate,
                 "tie_break_dice_eps": args.tie_break_dice_eps,
                 "tie_break_rule": (
                     "dice_primary_with_eps_then_jacobian_negative_fraction_then_"
@@ -1301,30 +1501,61 @@ def main() -> None:
                 "coverage_rule": "bbox_to_reference_grid_margin",
             },
         }
-        fixed_opt, fixed_apply, fixed_info = preprocess_image(
-            image_path=fixed,
-            out_dir=preproc_dir,
-            stem=f"{args.prefix}fixed",
-            moving_denoise=False,
-            is_moving=False,
-            mask_path=fixed_mask_path,
-            ants_denoise=ants_denoise,
-            ants_n4=ants_n4,
-            windows_mode=windows_mode,
-            env=env,
-        )
-        moving_opt, moving_apply, moving_info = preprocess_image(
-            image_path=moving,
-            out_dir=preproc_dir,
-            stem=f"{args.prefix}moving",
-            moving_denoise=moving_denoise_on,
-            is_moving=True,
-            mask_path=moving_mask_path,
-            ants_denoise=ants_denoise,
-            ants_n4=ants_n4,
-            windows_mode=windows_mode,
-            env=env,
-        )
+        if reuse_preproc_dir is not None:
+            fixed_n4_cached = reuse_preproc_dir / f"{args.prefix}fixed_n4.nii.gz"
+            moving_n4_cached = reuse_preproc_dir / f"{args.prefix}moving_n4.nii.gz"
+            if not fixed_n4_cached.exists():
+                raise FileNotFoundError(f"--reuse-preproc-dir missing file: {fixed_n4_cached}")
+            if not moving_n4_cached.exists():
+                raise FileNotFoundError(f"--reuse-preproc-dir missing file: {moving_n4_cached}")
+            ensure_float32(fixed_n4_cached)
+            ensure_float32(moving_n4_cached)
+            fixed_opt = fixed_n4_cached
+            fixed_apply = fixed_n4_cached
+            moving_opt = moving_n4_cached
+            moving_apply = moving_n4_cached
+            fixed_info = {
+                "reused": True,
+                "source_preproc_dir": str(reuse_preproc_dir),
+                "transform_apply_output": str(fixed_apply),
+                "optimization_output": str(fixed_opt),
+                "final_output": str(fixed_opt),
+            }
+            moving_info = {
+                "reused": True,
+                "source_preproc_dir": str(reuse_preproc_dir),
+                "transform_apply_output": str(moving_apply),
+                "optimization_output": str(moving_opt),
+                "final_output": str(moving_opt),
+            }
+            preproc_info["reused"] = True
+            preproc_info["reuse_preproc_dir"] = str(reuse_preproc_dir)
+        else:
+            fixed_opt, fixed_apply, fixed_info = preprocess_image(
+                image_path=fixed,
+                out_dir=preproc_dir,
+                stem=f"{args.prefix}fixed",
+                moving_denoise=False,
+                is_moving=False,
+                mask_path=fixed_mask_path,
+                ants_denoise=ants_denoise,
+                ants_n4=ants_n4,
+                windows_mode=windows_mode,
+                env=env,
+            )
+            moving_opt, moving_apply, moving_info = preprocess_image(
+                image_path=moving,
+                out_dir=preproc_dir,
+                stem=f"{args.prefix}moving",
+                moving_denoise=moving_denoise_on,
+                is_moving=True,
+                mask_path=moving_mask_path,
+                ants_denoise=ants_denoise,
+                ants_n4=ants_n4,
+                windows_mode=windows_mode,
+                env=env,
+            )
+            preproc_info["reused"] = False
         preproc_info["fixed"] = fixed_info
         preproc_info["moving"] = moving_info
         preproc_info["tools"] = {
@@ -1344,6 +1575,15 @@ def main() -> None:
         moving_apply_ants = to_ants_path(moving_apply, windows_mode)
         fixed_opt_ants = to_ants_path(fixed_opt, windows_mode)
         moving_opt_ants = to_ants_path(moving_opt, windows_mode)
+        reuse_linear_stages_dir = (
+            normalize_path(args.reuse_linear_stages_dir) if args.reuse_linear_stages_dir.strip() else None
+        )
+        fallback_runtime_on = fallback_on and (reuse_linear_stages_dir is None)
+        if reuse_linear_stages_dir is not None:
+            preproc_info["reuse_linear_stages_dir"] = str(reuse_linear_stages_dir)
+            preproc_info["affine_fallback_runtime_enabled"] = False
+        else:
+            preproc_info["affine_fallback_runtime_enabled"] = fallback_runtime_on
 
         coverage_fixed = evaluate_mask_coverage_margin(
             mask_path=fixed_mask_path,
@@ -1681,7 +1921,7 @@ def main() -> None:
                 "-m",
                 f"CC[{fixed_opt_ants},{moving_opt_ants},1,4]",
                 "-t",
-                "SyN[0.05,3,0]",
+                nonlinear_transform_spec,
                 "-c",
                 f"[{args.syn_iterations},1e-6,10]",
                 "-s",
@@ -1704,10 +1944,6 @@ def main() -> None:
             _check_exists(Path(syn_result["warped"]), f"{attempt_name} syn warped image")
             _check_exists(Path(syn_result["affine_mat"]), f"{attempt_name} syn affine matrix")
             _check_exists(syn_warp, f"{attempt_name} syn warp field")
-            _check_exists(
-                Path(attempt_stage_dir / "syn" / f"{args.prefix}syn_1InverseWarp.nii.gz"),
-                f"{attempt_name} syn inverse warp field",
-            )
 
             affine_info_log = Path(attempt_stage_dir / "affine" / f"{args.prefix}affine_transform_info.log.txt")
             affine_linear_info = read_affine_linear_info(
@@ -1721,6 +1957,7 @@ def main() -> None:
                 warp_field=syn_warp,
                 fixed_mask_path=fixed_mask_path,
                 jacobian_exec=ants_jacobian,
+                mask_erosion_iters=args.jac_mask_erosion_iters,
                 windows_mode=windows_mode,
                 env=env,
                 out_dir=Path(attempt_stage_dir / "syn"),
@@ -1738,10 +1975,12 @@ def main() -> None:
                 sv_min=args.affine_sv_min,
                 sv_max=args.affine_sv_max,
                 jac_min_threshold=args.jac_min,
+                jac_min_hard_gate=(args.jac_min_hard_gate == "on"),
                 jac_p01_min=args.jac_p01_min,
                 jac_p99_max=args.jac_p99_max,
                 jac_neg_frac_max=args.jac_neg_frac_max,
                 warp_l2_energy_max=args.warp_l2_energy_max,
+                warp_l2_hard_gate=(args.warp_l2_hard_gate == "on"),
             )
             append_trace(
                 trace_path,
@@ -1762,6 +2001,8 @@ def main() -> None:
                 "init_method": init_method,
                 "init_spec_for_rigid": init_spec_for_rigid,
                 "init_metadata": init_metadata,
+                "nonlinear_transform": nonlinear_transform_name,
+                "nonlinear_transform_spec": nonlinear_transform_spec,
                 "stages_dir": str(attempt_stage_dir),
                 "stage_results": attempt_stage_results,
                 "rigid_result": rigid_result,
@@ -1775,120 +2016,241 @@ def main() -> None:
             }
 
         attempt_runs: list[dict[str, Any]] = []
-        primary_init_spec = f"[{fixed_opt_ants},{moving_opt_ants},1]"
-        primary_attempt = _run_registration_attempt(
-            attempt_name="primary_com",
-            init_method="com_only",
-            init_spec_for_rigid=primary_init_spec,
-            init_metadata={"feature": "moments_intensity", "ants_initialization_feature": 1},
-            attempt_stage_dir=final_stages_dir,
-        )
-        attempt_runs.append(primary_attempt)
-
-        selected_attempt = primary_attempt
+        selected_attempt: dict[str, Any]
         fallback_triggered = False
         fallback_trigger_reasons: list[str] = []
         fallback_root = output_dir / "fallback_attempts"
         init_signatures = {"moments"}
 
-        if fallback_on and not primary_attempt["attempt_gate"]["passed"]:
-            fallback_triggered = True
-            fallback_trigger_reasons = list(primary_attempt["attempt_gate"]["reasons"])
-            append_trace(
-                trace_path,
-                {
-                    "ts": now_iso(),
-                    "run_id": run_id,
-                    "step_name": "AFFINE_FALLBACK_TRIGGERED",
-                    "status": "started",
-                    "edge_id": edge_id,
-                    "reasons": fallback_trigger_reasons,
-                    "order": fallback_methods,
-                },
+        if reuse_linear_stages_dir is not None:
+            rigid_src = reuse_linear_stages_dir / "rigid"
+            affine_src = reuse_linear_stages_dir / "affine"
+            if not rigid_src.exists():
+                raise FileNotFoundError(f"--reuse-linear-stages-dir missing rigid stage: {rigid_src}")
+            if not affine_src.exists():
+                raise FileNotFoundError(f"--reuse-linear-stages-dir missing affine stage: {affine_src}")
+
+            rigid_dst = final_stages_dir / "rigid"
+            affine_dst = final_stages_dir / "affine"
+            if rigid_dst.exists():
+                shutil.rmtree(rigid_dst)
+            if affine_dst.exists():
+                shutil.rmtree(affine_dst)
+            shutil.copytree(rigid_src, rigid_dst)
+            shutil.copytree(affine_src, affine_dst)
+
+            rigid_result = load_existing_stage_result(
+                stage_name="rigid",
+                stage_dir=rigid_dst,
+                prefix=args.prefix,
+                fixed_opt_path=fixed_opt,
+                fixed_mask_path=fixed_mask_path,
             )
-            fallback_root.mkdir(parents=True, exist_ok=True)
+            affine_result = load_existing_stage_result(
+                stage_name="affine",
+                stage_dir=affine_dst,
+                prefix=args.prefix,
+                fixed_opt_path=fixed_opt,
+                fixed_mask_path=fixed_mask_path,
+            )
+            attempt_stage_results: list[dict[str, Any]] = [rigid_result, affine_result]
+            syn_init = to_ants_path(Path(affine_result["affine_mat"]), windows_mode)
+            syn_terms = [
+                "-m",
+                f"CC[{fixed_opt_ants},{moving_opt_ants},1,4]",
+                "-t",
+                nonlinear_transform_spec,
+                "-c",
+                f"[{args.syn_iterations},1e-6,10]",
+                "-s",
+                args.syn_sigmas,
+                "-f",
+                args.syn_shrinks,
+            ]
+            syn_warp = Path(final_stages_dir / "syn" / f"{args.prefix}syn_1Warp.nii.gz")
+            syn_affine = Path(final_stages_dir / "syn" / f"{args.prefix}syn_0GenericAffine.mat")
+            syn_result = _run_stage(
+                attempt_name="reused_linear_syn",
+                attempt_stage_dir=final_stages_dir,
+                attempt_stage_results=attempt_stage_results,
+                stage_name="syn",
+                init_spec=syn_init,
+                stage_terms=syn_terms,
+                stage_transforms_apply_order=[syn_warp, syn_affine],
+            )
+            _check_exists(Path(syn_result["warped"]), "reused_linear_syn warped image")
+            _check_exists(Path(syn_result["affine_mat"]), "reused_linear_syn affine matrix")
+            _check_exists(syn_warp, "reused_linear_syn warp field")
 
-            for idx, method in enumerate(fallback_methods, start=1):
-                if method == "moments":
-                    if "moments" in init_signatures:
-                        continue
-                    init_signatures.add("moments")
-                    init_spec = f"[{fixed_opt_ants},{moving_opt_ants},1]"
-                    init_metadata = {"feature": "moments_intensity", "ants_initialization_feature": 1}
-                elif method == "geometry":
-                    if "geometry" in init_signatures:
-                        continue
-                    init_signatures.add("geometry")
-                    init_spec = f"[{fixed_opt_ants},{moving_opt_ants},0]"
-                    init_metadata = {"feature": "geometry_center", "ants_initialization_feature": 0}
-                elif method == "antsai":
-                    init_dir = fallback_root / f"{idx:02d}_{method}"
-                    init_dir.mkdir(parents=True, exist_ok=True)
-                    antsai_mat = init_dir / f"{args.prefix}antsai_init.mat"
-                    antsai_log = init_dir / f"{args.prefix}antsai_init.log.txt"
-                    cmd_antsai = [
-                        ants_ai,
-                        "-d",
-                        "3",
-                        "-m",
-                        (
-                            f"{LOCKED_ANTSAI_METRIC}[{fixed_opt_ants},{moving_opt_ants},"
-                            f"{LOCKED_ANTSAI_BINS},Regular,0.25]"
-                        ),
-                        "-t",
-                        "Rigid[0.1]",
-                        "-p",
-                        "-s",
-                        LOCKED_ANTSAI_SEARCH_FACTOR,
-                        "-g",
-                        LOCKED_ANTSAI_TRANSLATION_GRID,
-                        "-x",
-                        mask_pair_ants,
-                        "-o",
-                        to_ants_path(antsai_mat, windows_mode),
-                    ]
-                    if args.random_seed.strip():
-                        cmd_antsai.extend(["--random-seed", args.random_seed.strip()])
-                    antsai_run = run_logged(cmd_antsai, env=env, log_path=antsai_log)
-                    if not antsai_mat.exists():
-                        raise RuntimeError(f"antsAI init transform missing: {antsai_mat}")
-                    init_spec = to_ants_path(antsai_mat, windows_mode)
-                    init_metadata = {
-                        "antsai_init_mat": str(antsai_mat),
-                        "antsai_log": str(antsai_log),
-                        "antsai_run": antsai_run,
-                        "search_factor": LOCKED_ANTSAI_SEARCH_FACTOR,
-                        "translation_grid": LOCKED_ANTSAI_TRANSLATION_GRID,
-                    }
-                else:
-                    continue
+            affine_info_log = Path(final_stages_dir / "affine" / f"{args.prefix}affine_transform_info.log.txt")
+            affine_linear_info = read_affine_linear_info(
+                affine_path=Path(str(affine_result["affine_mat"])),
+                ants_transform_info=ants_transform_info,
+                windows_mode=windows_mode,
+                env=env,
+                log_path=affine_info_log,
+            )
+            jacobian_metrics = compute_jacobian_and_warp_metrics(
+                warp_field=syn_warp,
+                fixed_mask_path=fixed_mask_path,
+                jacobian_exec=ants_jacobian,
+                mask_erosion_iters=args.jac_mask_erosion_iters,
+                windows_mode=windows_mode,
+                env=env,
+                out_dir=Path(final_stages_dir / "syn"),
+                stem=f"{args.prefix}syn",
+            )
+            attempt_gate = evaluate_attempt_gate(
+                affine_result=affine_result,
+                affine_linear_info=affine_linear_info,
+                jacobian_metrics=jacobian_metrics,
+                min_dice=args.affine_min_dice,
+                min_nmi=args.affine_min_nmi,
+                min_cc=args.affine_min_cc,
+                det_min=args.affine_det_min,
+                det_max=args.affine_det_max,
+                sv_min=args.affine_sv_min,
+                sv_max=args.affine_sv_max,
+                jac_min_threshold=args.jac_min,
+                jac_min_hard_gate=(args.jac_min_hard_gate == "on"),
+                jac_p01_min=args.jac_p01_min,
+                jac_p99_max=args.jac_p99_max,
+                jac_neg_frac_max=args.jac_neg_frac_max,
+                warp_l2_energy_max=args.warp_l2_energy_max,
+                warp_l2_hard_gate=(args.warp_l2_hard_gate == "on"),
+            )
+            selected_attempt = {
+                "attempt_name": "reused_linear_syn",
+                "init_method": "reuse_linear_stages",
+                "init_spec_for_rigid": f"reused_from:{reuse_linear_stages_dir}",
+                "init_metadata": {
+                    "reuse_linear_stages_dir": str(reuse_linear_stages_dir),
+                    "reuse_rigid_stage": str(rigid_src),
+                    "reuse_affine_stage": str(affine_src),
+                },
+                "nonlinear_transform": nonlinear_transform_name,
+                "nonlinear_transform_spec": nonlinear_transform_spec,
+                "stages_dir": str(final_stages_dir),
+                "stage_results": attempt_stage_results,
+                "rigid_result": rigid_result,
+                "affine_result": affine_result,
+                "syn_result": syn_result,
+                "affine_linear_info": affine_linear_info,
+                "jacobian_metrics": jacobian_metrics,
+                "attempt_gate": attempt_gate,
+                "affine_gate": attempt_gate,
+            }
+            attempt_runs.append(selected_attempt)
+        else:
+            primary_init_spec = f"[{fixed_opt_ants},{moving_opt_ants},1]"
+            primary_attempt = _run_registration_attempt(
+                attempt_name="primary_com",
+                init_method="com_only",
+                init_spec_for_rigid=primary_init_spec,
+                init_metadata={"feature": "moments_intensity", "ants_initialization_feature": 1},
+                attempt_stage_dir=final_stages_dir,
+            )
+            attempt_runs.append(primary_attempt)
+            selected_attempt = primary_attempt
 
-                attempt_name = f"fallback_{idx:02d}_{method}"
-                attempt_stage_dir = fallback_root / attempt_name / "stages"
-                try:
-                    attempt = _run_registration_attempt(
-                        attempt_name=attempt_name,
-                        init_method=method,
-                        init_spec_for_rigid=init_spec,
-                        init_metadata=init_metadata,
-                        attempt_stage_dir=attempt_stage_dir,
-                    )
-                    attempt_runs.append(attempt)
-                except Exception as attempt_exc:
-                    append_trace(
-                        trace_path,
-                        {
-                            "ts": now_iso(),
-                            "run_id": run_id,
-                            "step_name": "REG_ATTEMPT_DONE",
-                            "status": "failed",
-                            "attempt": attempt_name,
-                            "init_method": method,
-                            "edge_id": edge_id,
-                            "error_message": str(attempt_exc),
-                        },
-                    )
-                    continue
+            if fallback_runtime_on and not primary_attempt["attempt_gate"]["passed"]:
+                fallback_triggered = True
+                fallback_trigger_reasons = list(primary_attempt["attempt_gate"]["reasons"])
+                append_trace(
+                    trace_path,
+                    {
+                        "ts": now_iso(),
+                        "run_id": run_id,
+                        "step_name": "AFFINE_FALLBACK_TRIGGERED",
+                        "status": "started",
+                        "edge_id": edge_id,
+                        "reasons": fallback_trigger_reasons,
+                        "order": fallback_methods,
+                    },
+                )
+                fallback_root.mkdir(parents=True, exist_ok=True)
+
+                for idx, method in enumerate(fallback_methods, start=1):
+                    if method == "moments":
+                        if "moments" in init_signatures:
+                            continue
+                        init_signatures.add("moments")
+                        init_spec = f"[{fixed_opt_ants},{moving_opt_ants},1]"
+                        init_metadata = {"feature": "moments_intensity", "ants_initialization_feature": 1}
+                    elif method == "geometry":
+                        if "geometry" in init_signatures:
+                            continue
+                        init_signatures.add("geometry")
+                        init_spec = f"[{fixed_opt_ants},{moving_opt_ants},0]"
+                        init_metadata = {"feature": "geometry_center", "ants_initialization_feature": 0}
+                    elif method == "antsai":
+                        init_dir = fallback_root / f"{idx:02d}_{method}"
+                        init_dir.mkdir(parents=True, exist_ok=True)
+                        antsai_mat = init_dir / f"{args.prefix}antsai_init.mat"
+                        antsai_log = init_dir / f"{args.prefix}antsai_init.log.txt"
+                        cmd_antsai = [
+                            ants_ai,
+                            "-d",
+                            "3",
+                            "-m",
+                            (
+                                f"{LOCKED_ANTSAI_METRIC}[{fixed_opt_ants},{moving_opt_ants},"
+                                f"{LOCKED_ANTSAI_BINS},Regular,0.25]"
+                            ),
+                            "-t",
+                            "Rigid[0.1]",
+                            "-p",
+                            "-s",
+                            LOCKED_ANTSAI_SEARCH_FACTOR,
+                            "-g",
+                            LOCKED_ANTSAI_TRANSLATION_GRID,
+                            "-x",
+                            mask_pair_ants,
+                            "-o",
+                            to_ants_path(antsai_mat, windows_mode),
+                        ]
+                        if args.random_seed.strip():
+                            cmd_antsai.extend(["--random-seed", args.random_seed.strip()])
+                        antsai_run = run_logged(cmd_antsai, env=env, log_path=antsai_log)
+                        if not antsai_mat.exists():
+                            raise RuntimeError(f"antsAI init transform missing: {antsai_mat}")
+                        init_spec = to_ants_path(antsai_mat, windows_mode)
+                        init_metadata = {
+                            "antsai_init_mat": str(antsai_mat),
+                            "antsai_log": str(antsai_log),
+                            "antsai_run": antsai_run,
+                            "search_factor": LOCKED_ANTSAI_SEARCH_FACTOR,
+                            "translation_grid": LOCKED_ANTSAI_TRANSLATION_GRID,
+                        }
+                    else:
+                        continue
+
+                    attempt_name = f"fallback_{idx:02d}_{method}"
+                    attempt_stage_dir = fallback_root / attempt_name / "stages"
+                    try:
+                        attempt = _run_registration_attempt(
+                            attempt_name=attempt_name,
+                            init_method=method,
+                            init_spec_for_rigid=init_spec,
+                            init_metadata=init_metadata,
+                            attempt_stage_dir=attempt_stage_dir,
+                        )
+                        attempt_runs.append(attempt)
+                    except Exception as attempt_exc:
+                        append_trace(
+                            trace_path,
+                            {
+                                "ts": now_iso(),
+                                "run_id": run_id,
+                                "step_name": "REG_ATTEMPT_DONE",
+                                "status": "failed",
+                                "attempt": attempt_name,
+                                "init_method": method,
+                                "edge_id": edge_id,
+                                "error_message": str(attempt_exc),
+                            },
+                        )
+                        continue
 
         passing_attempts = [at for at in attempt_runs if at.get("attempt_gate", {}).get("passed", False)]
         if passing_attempts:
@@ -1963,12 +2325,17 @@ def main() -> None:
         promote_pairs = [
             (Path(syn_result["affine_mat"]), affine_out),
             (Path(syn_result["warp_field"]), warp_out),
-            (Path(syn_result["inverse_warp_field"]), inv_warp_out),
         ]
+        syn_inverse_warp = Path(str(syn_result.get("inverse_warp_field", ""))) if syn_result.get(
+            "inverse_warp_field", ""
+        ) else None
+        if syn_inverse_warp is not None and syn_inverse_warp.exists():
+            promote_pairs.append((syn_inverse_warp, inv_warp_out))
         for src, dst in promote_pairs:
             shutil.copy2(src, dst)
         ensure_float32(warp_out)
-        ensure_float32(inv_warp_out)
+        if inv_warp_out.exists():
+            ensure_float32(inv_warp_out)
 
         cmd_apply_warped = [
             ants_apply,
@@ -1991,26 +2358,50 @@ def main() -> None:
         _check_exists(warped, "final warped image")
         ensure_float32(warped)
 
-        cmd_apply_inverse = [
-            ants_apply,
-            "-d",
-            "3",
-            "-i",
-            fixed_apply_ants,
-            "-r",
-            moving_apply_ants,
-            "-o",
-            to_ants_path(inverse, windows_mode),
-            "-t",
-            f"[{to_ants_path(affine_out, windows_mode)},1]",
-            "-t",
-            to_ants_path(inv_warp_out, windows_mode),
-            "-n",
-            args.resample_interpolation,
-        ]
-        run(cmd_apply_inverse, env=env)
-        _check_exists(inverse, "final inverse warped image")
-        ensure_float32(inverse)
+        inverse_generated = False
+        if inv_warp_out.exists():
+            cmd_apply_inverse = [
+                ants_apply,
+                "-d",
+                "3",
+                "-i",
+                fixed_apply_ants,
+                "-r",
+                moving_apply_ants,
+                "-o",
+                to_ants_path(inverse, windows_mode),
+                "-t",
+                f"[{to_ants_path(affine_out, windows_mode)},1]",
+                "-t",
+                to_ants_path(inv_warp_out, windows_mode),
+                "-n",
+                args.resample_interpolation,
+            ]
+            run(cmd_apply_inverse, env=env)
+            _check_exists(inverse, "final inverse warped image")
+            ensure_float32(inverse)
+            inverse_generated = True
+        else:
+            inverse = None
+            warn = (
+                "Nonlinear stage did not emit inverse warp field; "
+                f"skip inverse-warped image export. transform={nonlinear_transform_name} "
+                f"spec={nonlinear_transform_spec}"
+            )
+            print(f"[WARN] {warn}", flush=True)
+            run_manifest.setdefault("warnings", []).append(warn)
+            append_trace(
+                trace_path,
+                {
+                    "ts": now_iso(),
+                    "run_id": run_id,
+                    "step_name": "INVERSE_WARP_EXPORT",
+                    "status": "warning",
+                    "edge_id": edge_id,
+                    "inverse_warp_field": "",
+                    "error_message": warn,
+                },
+            )
 
         deformation_grid = output_dir / f"{args.prefix}deformationGrid.nii.gz"
         deformation_grid_log = output_dir / f"{args.prefix}deformationGrid.log.txt"
@@ -2049,7 +2440,9 @@ def main() -> None:
         if src_jac_json.exists():
             shutil.copy2(src_jac_json, jacobian_metrics_json_out)
 
-        transform_files = [str(affine_out), str(warp_out), str(inv_warp_out)]
+        transform_files = [str(affine_out), str(warp_out)]
+        if inv_warp_out.exists():
+            transform_files.append(str(inv_warp_out))
 
         append_trace(
             trace_path,
@@ -2077,6 +2470,7 @@ def main() -> None:
         qc_full = None
         if moving_apply != moving:
             warped_full = output_dir / f"{args.prefix}WarpedFull.nii.gz"
+            warped_full_log = output_dir / f"{args.prefix}warped_full.log.txt"
             cmd_apply_full = [
                 ants_apply,
                 "-d",
@@ -2094,9 +2488,40 @@ def main() -> None:
                 "-n",
                 args.resample_interpolation,
             ]
-            run(cmd_apply_full, env=env)
-            ensure_float32(warped_full)
-            qc_full = compute_mi_cc(fixed, warped_full)
+            try:
+                run_logged_retry(
+                    cmd_apply_full,
+                    env=env,
+                    log_path=warped_full_log,
+                    retry_codes=[66],
+                    attempts=3,
+                    retry_wait_sec=2.0,
+                )
+                ensure_float32(warped_full)
+                qc_full = compute_mi_cc(fixed, warped_full)
+            except Exception as exc:
+                warn = (
+                    "WarpedFull export failed after retries. "
+                    "Core registration outputs remain available; mark as warning. "
+                    f"error={exc}"
+                )
+                print(f"[WARN] {warn}", flush=True)
+                run_manifest.setdefault("warnings", []).append(warn)
+                append_trace(
+                    trace_path,
+                    {
+                        "ts": now_iso(),
+                        "run_id": run_id,
+                        "step_name": "WARPED_FULL_EXPORT",
+                        "status": "warning",
+                        "edge_id": edge_id,
+                        "output_path": str(warped_full),
+                        "log_path": str(warped_full_log),
+                        "error_message": str(exc),
+                    },
+                )
+                warped_full = None
+                qc_full = None
 
         qc_json = output_dir / f"{args.prefix}qc_metrics.json"
         write_json(qc_json, qc)
@@ -2125,8 +2550,17 @@ def main() -> None:
                         "warp_l2_energy_then_cc_then_attempt_name"
                     ),
                 },
+                "gate_policy": {
+                    "jac_min_hard_gate": args.jac_min_hard_gate,
+                    "jac_mask_erosion_iters": args.jac_mask_erosion_iters,
+                    "warp_l2_hard_gate": args.warp_l2_hard_gate,
+                    "warp_l2_soft_logic": (
+                        "if warp_l2_hard_gate=off, warp L2 alert fails only when "
+                        "joint with similarity/Jacobian hard failures"
+                    ),
+                },
                 "affine_fallback": {
-                    "enabled": fallback_on,
+                    "enabled": fallback_runtime_on,
                     "triggered": fallback_triggered,
                     "trigger_reasons": fallback_trigger_reasons,
                     "order": fallback_methods,
@@ -2162,7 +2596,7 @@ def main() -> None:
                 "use_masks_in_optimization": use_masks_opt,
                 "init_strategy": args.init_strategy,
                 "affine_fallback": {
-                    "enabled": fallback_on,
+                    "enabled": fallback_runtime_on,
                     "triggered": fallback_triggered,
                     "trigger_reasons": fallback_trigger_reasons,
                     "order": fallback_methods,
@@ -2177,6 +2611,8 @@ def main() -> None:
                     "rigid_affine_iterations": args.rigid_affine_iterations,
                     "rigid_affine_sigmas": args.rigid_affine_sigmas,
                     "rigid_affine_shrinks": args.rigid_affine_shrinks,
+                    "nonlinear_transform": nonlinear_transform_name,
+                    "nonlinear_transform_spec": nonlinear_transform_spec,
                     "syn_iterations": args.syn_iterations,
                     "syn_sigmas": args.syn_sigmas,
                     "syn_shrinks": args.syn_shrinks,
@@ -2185,15 +2621,14 @@ def main() -> None:
                     "random_seed": args.random_seed.strip(),
                     "preprocess_mode_locked": preprocess_mode,
                     "moving_denoise": args.moving_denoise,
+                    "reuse_preproc_dir": str(reuse_preproc_dir) if reuse_preproc_dir else "",
+                    "reuse_linear_stages_dir": (
+                        str(reuse_linear_stages_dir) if reuse_linear_stages_dir else ""
+                    ),
                     "n4_convergence": LOCKED_N4_CONVERGENCE,
                     "n4_bspline_fitting": LOCKED_N4_BSPLINE,
                     "n4_shrink_factor": LOCKED_N4_SHRINK_FACTOR,
-                    "opt_norm_clip_low_percent": LOCKED_OPT_NORM_CLIP_LOW_PERCENT,
-                    "opt_norm_clip_high_percent": LOCKED_OPT_NORM_CLIP_HIGH_PERCENT,
-                    "opt_norm_robust_scale_factor": LOCKED_OPT_NORM_ROBUST_SCALE,
-                    "opt_norm_center": "median",
-                    "opt_norm_scale": "MAD",
-                    "affine_fallback_enabled": fallback_on,
+                    "affine_fallback_enabled": fallback_runtime_on,
                     "affine_fallback_order": fallback_methods,
                     "affine_min_dice": args.affine_min_dice,
                     "affine_min_nmi": args.affine_min_nmi,
@@ -2203,10 +2638,13 @@ def main() -> None:
                     "affine_sv_min": args.affine_sv_min,
                     "affine_sv_max": args.affine_sv_max,
                     "jac_min": args.jac_min,
+                    "jac_min_hard_gate": args.jac_min_hard_gate,
+                    "jac_mask_erosion_iters": args.jac_mask_erosion_iters,
                     "jac_p01_min": args.jac_p01_min,
                     "jac_p99_max": args.jac_p99_max,
                     "jac_neg_frac_max": args.jac_neg_frac_max,
                     "warp_l2_energy_max": args.warp_l2_energy_max,
+                    "warp_l2_hard_gate": args.warp_l2_hard_gate,
                     "tie_break_dice_eps": args.tie_break_dice_eps,
                     "tie_break_rule": (
                         "dice_primary_with_eps_then_jacobian_negative_fraction_then_"
@@ -2218,7 +2656,7 @@ def main() -> None:
                 },
                 "coverage_check": coverage_check,
                 "warped": str(warped),
-                "inverse_warped": str(inverse),
+                "inverse_warped": str(inverse) if inverse_generated and inverse else "",
                 "warped_full": str(warped_full) if warped_full else "",
                 "deformation_grid": str(deformation_grid),
                 "jacobian_det": str(jacobian_det_out) if jacobian_det_out.exists() else "",
@@ -2228,9 +2666,9 @@ def main() -> None:
                 ),
                 "jacobian_stats": selected_jacobian.get("jacobian", {}),
                 "warp_energy_stats": selected_jacobian.get("warp_energy", {}),
-                "affine_mat": transform_files[0],
-                "warp_field": transform_files[1],
-                "inverse_warp_field": transform_files[2],
+                "affine_mat": str(affine_out),
+                "warp_field": str(warp_out),
+                "inverse_warp_field": str(inv_warp_out) if inv_warp_out.exists() else "",
                 "transform_files": transform_files,
                 "deformation_grid_config": {
                     "directions": LOCKED_DEFORMATION_GRID_DIRECTIONS,

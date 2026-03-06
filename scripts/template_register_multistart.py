@@ -203,6 +203,27 @@ def parse_args() -> argparse.Namespace:
         default="com_only",
         choices=["com_only", "translation_then_rigid"],
     )
+    p.add_argument(
+        "--nonlinear-transform",
+        default="syn",
+        choices=[
+            "syn",
+            "bspline_syn",
+            "bspline_displacement_field",
+            "gaussian_displacement_field",
+            "time_varying_velocity_field",
+            "time_varying_bspline_velocity_field",
+            "exponential",
+            "bspline_exponential",
+            "custom",
+        ],
+        help="Nonlinear transform family passed through to template_register.py.",
+    )
+    p.add_argument(
+        "--nonlinear-transform-spec",
+        default="",
+        help="Optional explicit ANTs transform spec string passed through to template_register.py.",
+    )
     p.add_argument("--affine-fallback", default="on", choices=["on", "off"])
     p.add_argument("--affine-fallback-order", default="moments,geometry,antsai")
     p.add_argument("--affine-min-dice", type=float, default=0.55)
@@ -213,10 +234,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--affine-sv-min", type=float, default=0.25)
     p.add_argument("--affine-sv-max", type=float, default=4.0)
     p.add_argument("--jac-min", type=float, default=0.05)
+    p.add_argument("--jac-min-hard-gate", default="off", choices=["on", "off"])
+    p.add_argument("--jac-mask-erosion-iters", type=int, default=1)
     p.add_argument("--jac-p01-min", type=float, default=0.20)
     p.add_argument("--jac-p99-max", type=float, default=5.0)
     p.add_argument("--jac-neg-frac-max", type=float, default=0.001)
     p.add_argument("--warp-l2-energy-max", type=float, default=50.0)
+    p.add_argument("--warp-l2-hard-gate", default="off", choices=["on", "off"])
     p.add_argument("--coverage-margin-min-vox", type=int, default=10)
     p.add_argument("--coverage-margin-min-mm", type=float, default=2.5)
     p.add_argument(
@@ -274,6 +298,8 @@ def main() -> None:
         raise RuntimeError("Failed to construct 3 seeds for multi-start.")
     if args.tie_break_dice_eps <= 0:
         raise RuntimeError("--tie-break-dice-eps must be > 0.")
+    if args.jac_mask_erosion_iters < 0:
+        raise RuntimeError("--jac-mask-erosion-iters must be >= 0.")
     if args.coverage_margin_min_vox < 0:
         raise RuntimeError("--coverage-margin-min-vox must be >= 0.")
     if args.coverage_margin_min_mm <= 0:
@@ -340,6 +366,8 @@ def main() -> None:
             args.use_mask_in_optimization,
             "--init-strategy",
             args.init_strategy,
+            "--nonlinear-transform",
+            args.nonlinear_transform,
             "--affine-fallback",
             args.affine_fallback,
             "--affine-fallback-order",
@@ -360,6 +388,10 @@ def main() -> None:
             str(args.affine_sv_max),
             "--jac-min",
             str(args.jac_min),
+            "--jac-min-hard-gate",
+            args.jac_min_hard_gate,
+            "--jac-mask-erosion-iters",
+            str(args.jac_mask_erosion_iters),
             "--jac-p01-min",
             str(args.jac_p01_min),
             "--jac-p99-max",
@@ -368,6 +400,8 @@ def main() -> None:
             str(args.jac_neg_frac_max),
             "--warp-l2-energy-max",
             str(args.warp_l2_energy_max),
+            "--warp-l2-hard-gate",
+            args.warp_l2_hard_gate,
             "--coverage-margin-min-vox",
             str(args.coverage_margin_min_vox),
             "--coverage-margin-min-mm",
@@ -381,6 +415,8 @@ def main() -> None:
             "--random-seed",
             str(seed),
         ]
+        if args.nonlinear_transform_spec.strip():
+            cmd.extend(["--nonlinear-transform-spec", args.nonlinear_transform_spec.strip()])
         if args.edge_id.strip():
             cmd.extend(["--edge-id", args.edge_id.strip()])
         cmd.extend(["--fixed-mask", str(fixed_mask_path)])
@@ -527,6 +563,8 @@ def main() -> None:
         "threads_per_seed": max(args.threads, 1),
         "preprocess_mode": args.preprocess_mode,
         "moving_denoise": args.moving_denoise,
+        "nonlinear_transform": args.nonlinear_transform,
+        "nonlinear_transform_spec": args.nonlinear_transform_spec,
         "affine_fallback": {
             "enabled": args.affine_fallback,
             "order": args.affine_fallback_order,
@@ -538,10 +576,13 @@ def main() -> None:
             "sv_min": args.affine_sv_min,
             "sv_max": args.affine_sv_max,
             "jac_min": args.jac_min,
+            "jac_min_hard_gate": args.jac_min_hard_gate,
+            "jac_mask_erosion_iters": args.jac_mask_erosion_iters,
             "jac_p01_min": args.jac_p01_min,
             "jac_p99_max": args.jac_p99_max,
             "jac_neg_frac_max": args.jac_neg_frac_max,
             "warp_l2_energy_max": args.warp_l2_energy_max,
+            "warp_l2_hard_gate": args.warp_l2_hard_gate,
         },
         "coverage_check": {
             "min_margin_vox": args.coverage_margin_min_vox,
@@ -571,6 +612,12 @@ def main() -> None:
             "`Dice primary; if |Dice diff| < eps then lower Jacobian negative fraction, "
             "lower warp L2 energy, higher CC, smaller seed`"
         ),
+        (
+            "- gate_policy: "
+            f"`jac_min_hard_gate={args.jac_min_hard_gate}, "
+            f"warp_l2_hard_gate={args.warp_l2_hard_gate}, "
+            f"jac_mask_erosion_iters={args.jac_mask_erosion_iters}`"
+        ),
         f"- tie_break_dice_eps: `{args.tie_break_dice_eps}`",
         (
             "- coverage_hard_gate: "
@@ -579,6 +626,8 @@ def main() -> None:
         ),
         f"- selected_seed: `{best_seed}`",
         f"- threads_per_seed: `{max(args.threads, 1)}`",
+        f"- nonlinear_transform: `{args.nonlinear_transform}`",
+        f"- nonlinear_transform_spec: `{args.nonlinear_transform_spec or '(profile default)'}`",
         f"- summary_json: `{summary_json}`",
         "",
         "## Seed Results",
