@@ -15,6 +15,7 @@ MTsat/
 SNR MAP/
 WHS12 template&atlas/
 third_party/
+.local_tools/
 
 # Local registration test outputs
 test/

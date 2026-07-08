@@ -123,7 +123,7 @@ def _load_mask(mask_path: Path, shape: tuple[int, ...]) -> np.ndarray:
 def _run_group(
     *,
     group_name: str,
-    modalities: list[tuple[str, Path | None, Path | None]],
+    modalities: list[tuple[str, Path | None, Path | None, Path | None]],
     out_json: Path,
     output_dir: Path,
     percentiles: list[int],
@@ -141,7 +141,7 @@ def _run_group(
     summary_rows: list[dict[str, Any]] = []
     used_any_input_mask = False
 
-    for mod_key, img_path, mod_mask_path in modalities:
+    for mod_key, img_path, mod_mask_path, roi_mask_path in modalities:
         if img_path is None:
             continue
         if not img_path.exists():
@@ -154,7 +154,9 @@ def _run_group(
 
         use_mask_as_head = False
         source_mask_path: Path | None = None
+        source_roi_mask_path: Path | None = None
         head_mask_from_input: np.ndarray | None = None
+        roi_mask_from_input: np.ndarray | None = None
 
         if mod_mask_path is not None:
             source_mask_path = mod_mask_path
@@ -167,9 +169,14 @@ def _run_group(
             use_mask_as_head = True
             used_any_input_mask = True
 
+        if roi_mask_path is not None:
+            source_roi_mask_path = roi_mask_path
+            roi_mask_from_input = _load_mask(roi_mask_path, img.shape)
+
         mod_block: dict[str, Any] = {
             "source_image_path": _rel(img_path, output_dir),
             "source_mask_path": _rel(source_mask_path, output_dir) if source_mask_path else None,
+            "source_roi_mask_path": _rel(source_roi_mask_path, output_dir) if source_roi_mask_path else None,
             "thresholds": {},
         }
 
@@ -186,6 +193,11 @@ def _run_group(
                 else:
                     threshold_value = float(np.percentile(nonzero, p))
                 head_mask = finite & (img_mag >= threshold_value)
+
+            if roi_mask_from_input is not None:
+                roi_mask = roi_mask_from_input & finite
+            else:
+                roi_mask = head_mask
 
             exclusion = _dilate_connectivity(head_mask, max(0, guard_radius_vox + margin_vox))
             background_mask = finite & (~exclusion)
@@ -209,7 +221,7 @@ def _run_group(
             _save_mask(background_mask, img_nii, bg_path)
             _save_float(snr_map, img_nii, snr_path)
 
-            roi_vals = snr_map[head_mask]
+            roi_vals = snr_map[roi_mask]
             thr_block = {
                 "threshold_value": threshold_value,
                 "formula_version": formula_version,
@@ -221,6 +233,7 @@ def _run_group(
                 "script_path": _rel(script_path, output_dir),
                 "run_id": run_id,
                 "head_mask_path": _rel(head_path, output_dir),
+                "roi_mask_path": _rel(source_roi_mask_path, output_dir) if source_roi_mask_path else _rel(head_path, output_dir),
                 "background_mask_path": _rel(bg_path, output_dir),
                 "background_stats": _safe_stats(bg_vals),
                 "snr_roi_stats": _safe_stats(roi_vals),
@@ -290,6 +303,10 @@ def main() -> int:
     parser.add_argument("--mtoff-mask", default="")
     parser.add_argument("--t1-mask", default="")
     parser.add_argument("--t2-mask", default="")
+    parser.add_argument("--mton-roi-mask", default="")
+    parser.add_argument("--mtoff-roi-mask", default="")
+    parser.add_argument("--t1-roi-mask", default="")
+    parser.add_argument("--t2-roi-mask", default="")
     parser.add_argument("--default-mask", default="")
 
     args = parser.parse_args()
@@ -313,6 +330,10 @@ def main() -> int:
     mtoff_mask = _p(args.mtoff_mask)
     t1_mask = _p(args.t1_mask)
     t2_mask = _p(args.t2_mask)
+    mton_roi_mask = _p(args.mton_roi_mask)
+    mtoff_roi_mask = _p(args.mtoff_roi_mask)
+    t1_roi_mask = _p(args.t1_roi_mask)
+    t2_roi_mask = _p(args.t2_roi_mask)
     default_mask = _p(args.default_mask)
 
     all_rows: list[dict[str, Any]] = []
@@ -320,7 +341,10 @@ def main() -> int:
     all_rows.extend(
         _run_group(
             group_name="mt_standard",
-            modalities=[("mton", mton, mton_mask), ("mtoff", mtoff, mtoff_mask)],
+            modalities=[
+                ("mton", mton, mton_mask, mton_roi_mask),
+                ("mtoff", mtoff, mtoff_mask, mtoff_roi_mask),
+            ],
             out_json=output_dir / "background_stats.json",
             output_dir=output_dir,
             percentiles=percentiles,
@@ -338,7 +362,10 @@ def main() -> int:
     all_rows.extend(
         _run_group(
             group_name="mt_nobright",
-            modalities=[("mton", mton, mton_mask), ("mtoff", mtoff, mtoff_mask)],
+            modalities=[
+                ("mton", mton, mton_mask, mton_roi_mask),
+                ("mtoff", mtoff, mtoff_mask, mtoff_roi_mask),
+            ],
             out_json=output_dir / "background_stats_nobright.json",
             output_dir=output_dir,
             percentiles=percentiles,
@@ -356,7 +383,10 @@ def main() -> int:
     all_rows.extend(
         _run_group(
             group_name="t1t2_standard",
-            modalities=[("t1", t1, t1_mask), ("t2", t2, t2_mask)],
+            modalities=[
+                ("t1", t1, t1_mask, t1_roi_mask),
+                ("t2", t2, t2_mask, t2_roi_mask),
+            ],
             out_json=output_dir / "background_stats_t1t2.json",
             output_dir=output_dir,
             percentiles=percentiles,

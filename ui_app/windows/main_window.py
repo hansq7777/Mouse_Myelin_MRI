@@ -525,9 +525,9 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("T1 input", self._hbox(self.t1t2_t1, btn_t1))
 
         self.t1t2_t2 = QtWidgets.QLineEdit()
-        btn_t2 = QtWidgets.QPushButton("Pick T2/RAREvfl")
+        btn_t2 = QtWidgets.QPushButton("Pick T2_RAREvfl")
         btn_t2.clicked.connect(lambda: self._set_line_from_file(self.t1t2_t2))
-        form.addRow("T2 / RAREvfl", self._hbox(self.t1t2_t2, btn_t2))
+        form.addRow("T2_RAREvfl", self._hbox(self.t1t2_t2, btn_t2))
 
         self.t1t2_mask = QtWidgets.QLineEdit()
         btn_mask = QtWidgets.QPushButton("Pick mask")
@@ -1259,7 +1259,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _run_t1t2(self) -> None:
         if not (self.t1t2_t1.text() and self.t1t2_t2.text() and self.t1t2_mask.text()):
-            self._warn("Set T1, T2/RAREvfl, and mask.")
+            self._warn("Set T1, T2_RAREvfl, and mask.")
             return
         gauss = 1 if self.t1t2_gauss.isChecked() else 0
         match = 1 if self.t1t2_match.isChecked() else 0
@@ -1908,7 +1908,18 @@ class MainWindow(QtWidgets.QMainWindow):
     def _guess_subject_base(self, src_path: Path) -> Path | None:
         if self.subject_folder_path:
             # ensure we point to subject root (not modality)
-            known_modalities = {"MTon&off", "MTon", "MToff", "MToff_PDw", "MToff_T1", "T1", "T2", "RAREvfl", "B1"}
+            known_modalities = {
+                "MTon&off",
+                "MTon",
+                "MToff",
+                "MToff_PDw",
+                "MToff_T1",
+                "T1",
+                "T2",
+                "RAREvfl",
+                "T2_RAREvfl",
+                "B1",
+            }
             if self.subject_folder_path.name in known_modalities:
                 return self.subject_folder_path.parent
             return self.subject_folder_path
@@ -1935,11 +1946,18 @@ class MainWindow(QtWidgets.QMainWindow):
             "T1",
             "T2",
             "RAREvfl",
+            "T2_RAREvfl",
             "B1",
         }
         base = self.subject_folder_path
         if base.name in known_modalities:
             base = base.parent  # user picked a modality folder; go one level up
+
+        def first_existing_path(*paths: Path) -> Path:
+            for path in paths:
+                if path.exists():
+                    return path
+            return paths[0]
 
         def set_if_empty(line_edit: QtWidgets.QLineEdit, path: Path) -> None:
             if not line_edit.text():
@@ -1979,13 +1997,23 @@ class MainWindow(QtWidgets.QMainWindow):
         set_if_empty(self.b1prep_out, base / "B1" / "B1_RFlocal")
         # T1/T2 step suggestions
         set_if_empty(self.t1t2_t1, base / "T1" / "T1.nii.gz")
-        set_if_empty(self.t1t2_t2, base / "RAREvfl" / "RAREvfl.nii.gz")
-        set_if_empty(self.t1t2_mask, base / "RAREvfl" / "RAREvfl.mask.nii.gz")
+        t2_nii = first_existing_path(
+            base / "T2_RAREvfl" / "T2_RAREvfl.nii.gz",
+            base / "RAREvfl" / "RAREvfl.nii.gz",
+        )
+        t2_mask = first_existing_path(
+            base / "T2_RAREvfl" / "T2_RAREvfl_mask.nii.gz",
+            base / "T2_RAREvfl" / "T2_RAREvfl.mask.nii.gz",
+            base / "RAREvfl" / "RAREvfl_mask.nii.gz",
+            base / "RAREvfl" / "RAREvfl.mask.nii.gz",
+        )
+        set_if_empty(self.t1t2_t2, t2_nii)
+        set_if_empty(self.t1t2_mask, t2_mask)
         # SNR contract defaults (paper-style)
         set_if_empty(self.snr_mton_img, base / "MTon" / "MTon.nii.gz")
         set_if_empty(self.snr_mtoff_img, base / "MToff_PDw" / "MToff_PDw.nii.gz")
         set_if_empty(self.snr_t1_img, base / "MToff_T1" / "MToff_T1.nii.gz")
-        set_if_empty(self.snr_t2_img, base / "RAREvfl" / "RAREvfl.nii.gz")
+        set_if_empty(self.snr_t2_img, t2_nii)
         set_if_empty(self.snr_mton_mask, base / "MTon" / "MTon_mask.nii.gz")
         set_if_empty(self.snr_mtoff_mask, base / "MTon" / "MTon_mask.nii.gz")
         set_if_empty(self.snr_t1_mask, base / "MTon" / "MTon_mask.nii.gz")
@@ -2288,7 +2316,18 @@ class MainWindow(QtWidgets.QMainWindow):
         # look for pattern .../<modality>/pdata/1/dicom
         if len(parts) >= 3 and parts[-3].lower() == "pdata" and parts[-1].lower() == "dicom":
             return in_path.parent.parent.parent
-        known_modalities = {"MTon&off", "MTon", "MToff", "MToff_PDw", "MToff_T1", "T1", "T2", "RAREvfl", "B1"}
+        known_modalities = {
+            "MTon&off",
+            "MTon",
+            "MToff",
+            "MToff_PDw",
+            "MToff_T1",
+            "T1",
+            "T2",
+            "RAREvfl",
+            "T2_RAREvfl",
+            "B1",
+        }
         if in_path.name in known_modalities:
             return in_path
         if len(parts) >= 1:
